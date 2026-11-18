@@ -35,7 +35,7 @@ async function handleLogout(): Promise<void> {
 <template>
   <header class="border-b border-stone-800 bg-stone-900/80">
     <div
-      class="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 text-sm"
+      class="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 text-sm"
     >
       <span class="font-mono text-stone-200">{{ login }}</span>
       <span class="text-stone-500">{{ sessionName }}</span>

@@ -26,8 +26,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/game',
     name: 'game',
-    component: StubView,
-    props: { title: 'Игра' },
+    component: () => import('../views/GameView.vue'),
     meta: { requiresSession: true },
   },
   {

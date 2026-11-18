@@ -13,7 +13,7 @@ const { data: me } = useMeQuery()
   <div class="min-h-screen bg-stone-950 text-stone-100">
     <AppHeader v-if="me" />
 
-    <main class="mx-auto w-full max-w-5xl px-4 py-6">
+    <main class="mx-auto w-full max-w-7xl px-4 py-6">
       <RouterView />
     </main>
 
