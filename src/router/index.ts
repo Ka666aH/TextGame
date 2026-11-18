@@ -3,16 +3,40 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { meQueryOptions } from '../queries/auth'
 import { queryClient } from '../queries/client'
 
-// Заглушка для экранов, которые появятся в блоках 2–4.
+declare module 'vue-router' {
+  interface RouteMeta {
+    /** Экран бессмысленен без активной сессии: сервер ответил бы 403. */
+    requiresSession?: boolean
+  }
+}
+
+// Заглушка для игровых экранов блока 4.
 const StubView = () => import('../views/StubView.vue')
 
 const routes: RouteRecordRaw[] = [
   { path: '/login', name: 'login', component: () => import('../views/LoginView.vue') },
   { path: '/', name: 'root', component: StubView, props: { title: 'Загрузка' } },
   { path: '/sessions', name: 'sessions', component: () => import('../views/SessionsView.vue') },
-  { path: '/saves', name: 'saves', component: StubView, props: { title: 'Сохранения' } },
-  { path: '/game', name: 'game', component: StubView, props: { title: 'Игра' } },
-  { path: '/game-over', name: 'gameOver', component: StubView, props: { title: 'Конец игры' } },
+  {
+    path: '/saves',
+    name: 'saves',
+    component: () => import('../views/SavesView.vue'),
+    meta: { requiresSession: true },
+  },
+  {
+    path: '/game',
+    name: 'game',
+    component: StubView,
+    props: { title: 'Игра' },
+    meta: { requiresSession: true },
+  },
+  {
+    path: '/game-over',
+    name: 'gameOver',
+    component: StubView,
+    props: { title: 'Конец игры' },
+    meta: { requiresSession: true },
+  },
   { path: '/:pathMatch(.*)*', redirect: { name: 'root' } },
 ]
 
@@ -36,6 +60,10 @@ router.beforeEach(async (to) => {
   const home = me.sessionId !== null ? { name: 'game' } : { name: 'sessions' }
 
   if (to.name === 'login' || to.name === 'root') return home
+
+  if (to.meta.requiresSession === true && me.sessionId === null) {
+    return { name: 'sessions' }
+  }
 
   return true
 })

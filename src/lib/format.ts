@@ -15,3 +15,12 @@ export function formatDateTime(iso: string): string {
   if (Number.isNaN(date.getTime())) return iso
   return dateTimeFormatter.format(date)
 }
+
+/**
+ * Порядок списков сервер не гарантирует ни для сессий, ни для сохранений,
+ * поэтому сортируем на клиенте. ISO-строки в UTC сравниваются лексикографически
+ * корректно — парсить даты ради сортировки не нужно.
+ */
+export function newestFirst<T extends { createdAt: string }>(items: readonly T[]): T[] {
+  return [...items].sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+}

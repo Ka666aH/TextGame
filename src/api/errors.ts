@@ -99,6 +99,9 @@ export function messageForError(error: ApiError): string {
   if (error.code === CODE.notStarted) {
     return 'Игра окончена. Начни новую или загрузи сохранение.'
   }
+  if (error.code === CODE.impossibleDeleteSave) {
+    return 'Это сохранение создаётся автоматически, удалить его нельзя.'
+  }
   if (error.code === CODE.incorrectPassword) {
     return 'Неверный пароль.'
   }

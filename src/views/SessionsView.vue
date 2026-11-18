@@ -6,7 +6,7 @@ import { isApiError, messageForError } from '../api/errors'
 import type { CreateSessionPayload } from '../api/sessions'
 import type { Session } from '../api/types'
 import { MAX_NAME_LENGTH } from '../api/labels'
-import { formatDateTime } from '../lib/format'
+import { formatDateTime, newestFirst } from '../lib/format'
 import { validateOptionalName, validateSeed } from '../lib/validation'
 import { useMeQuery } from '../queries/auth'
 import {
@@ -40,10 +40,7 @@ const errors = reactive<{ name: string | null; seed: string | null }>({ name: nu
 const activeId = computed(() => me.value?.sessionId ?? null)
 
 /** Порядок сервер не гарантирует — сортируем сами, свежие сверху. */
-const sessions = computed<Session[]>(() => {
-  const list = sessionsData.value ?? []
-  return [...list].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-})
+const sessions = computed<Session[]>(() => newestFirst(sessionsData.value ?? []))
 
 const isEmpty = computed(() => !sessionsPending.value && sessions.value.length === 0)
 
