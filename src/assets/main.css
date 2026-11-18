@@ -1,0 +1,11 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-mono: 'JetBrains Mono', 'Cascadia Mono', 'Consolas', ui-monospace, monospace;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
