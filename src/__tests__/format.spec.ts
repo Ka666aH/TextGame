@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatDateTime, newestFirst } from '../lib/format'
+import { formatDateTime, formatSeed, newestFirst } from '../lib/format'
 
 describe('formatDateTime', () => {
   it('превращает ISO-строку в читаемую дату', () => {
@@ -15,6 +15,20 @@ describe('formatDateTime', () => {
 
   it('не падает на пустой строке', () => {
     expect(formatDateTime('')).toBe('')
+  })
+})
+
+describe('formatSeed', () => {
+  it('показывает число без экспоненты и разделителей', () => {
+    expect(formatSeed(1234567890123)).toBe('1234567890123')
+  })
+
+  it('отбрасывает дробную часть: seed целый', () => {
+    expect(formatSeed(42.9)).toBe('42')
+  })
+
+  it('не падает на нечисле', () => {
+    expect(formatSeed(Number.NaN)).toBe('NaN')
   })
 })
 

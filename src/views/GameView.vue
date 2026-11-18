@@ -291,6 +291,7 @@ async function handleSell(item: InventoryItem): Promise<void> {
           v-if="!inBattle"
           :key="info.room.number"
           :room-number="info.room.number"
+          :room-name="info.room.name"
           :in-shop="isShop"
         />
       </div>

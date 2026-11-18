@@ -3,7 +3,11 @@ import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { fieldError, isApiError, messageForError } from '../api/errors'
-import { validateLoginForm, type LoginFormErrors } from '../lib/validation'
+import {
+  validateLoginForm,
+  validateRegisterForm,
+  type RegisterFormErrors,
+} from '../lib/validation'
 import { meQueryOptions, useLoginMutation, useRegisterMutation } from '../queries/auth'
 import { queryClient } from '../queries/client'
 
@@ -14,9 +18,13 @@ const loginMutation = useLoginMutation()
 const registerMutation = useRegisterMutation()
 
 const mode = ref<Mode>('login')
-const form = reactive({ login: '', password: '' })
+const form = reactive({ login: '', password: '', confirmation: '' })
 const serverError = ref<string | null>(null)
-const formErrors = reactive<LoginFormErrors>({ login: null, password: null })
+const formErrors = reactive<RegisterFormErrors>({
+  login: null,
+  password: null,
+  confirmation: null,
+})
 
 const pending = computed(() => loginMutation.isPending.value || registerMutation.isPending.value)
 const submitLabel = computed(() => (mode.value === 'login' ? 'Войти' : 'Зарегистрироваться'))
@@ -24,8 +32,10 @@ const submitLabel = computed(() => (mode.value === 'login' ? 'Войти' : 'З�
 function switchMode(next: Mode): void {
   mode.value = next
   serverError.value = null
+  form.confirmation = ''
   formErrors.login = null
   formErrors.password = null
+  formErrors.confirmation = null
 }
 
 function applyServerError(error: unknown): void {
@@ -48,10 +58,24 @@ function applyServerError(error: unknown): void {
 async function submit(): Promise<void> {
   serverError.value = null
 
-  const errors = validateLoginForm(form.login, form.password)
+  // На входе пароль не проверяется на сложность, только на непустоту:
+  // правила придуманы для регистрации.
+  const errors =
+    mode.value === 'login'
+      ? validateLoginForm(form.login, form.password)
+      : validateRegisterForm(form.login, form.password, form.confirmation)
+
   formErrors.login = errors.login
   formErrors.password = errors.password
-  if (errors.login !== null || errors.password !== null) return
+  formErrors.confirmation = 'confirmation' in errors ? errors.confirmation : null
+
+  if (
+    formErrors.login !== null ||
+    formErrors.password !== null ||
+    formErrors.confirmation !== null
+  ) {
+    return
+  }
 
   const credentials = { login: form.login.trim(), password: form.password }
 
@@ -124,7 +148,23 @@ async function submit(): Promise<void> {
         <p v-if="formErrors.password" class="mt-1 text-xs text-red-400">
           {{ formErrors.password }}
         </p>
-        <p v-else class="mt-1 text-xs text-stone-500">Нужна заглавная латинская буква и цифра.</p>
+        <p v-else-if="mode === 'register'" class="mt-1 text-xs text-stone-500">
+          Нужна заглавная латинская буква и цифра.
+        </p>
+      </div>
+
+      <div v-if="mode === 'register'">
+        <label class="block text-sm text-stone-300" for="confirmation">Пароль ещё раз</label>
+        <input
+          id="confirmation"
+          v-model="form.confirmation"
+          type="password"
+          autocomplete="new-password"
+          class="mt-1 w-full rounded border border-stone-700 bg-stone-900 px-3 py-2 text-sm outline-none focus:border-stone-500"
+        />
+        <p v-if="formErrors.confirmation" class="mt-1 text-xs text-red-400">
+          {{ formErrors.confirmation }}
+        </p>
       </div>
 
       <p v-if="serverError" class="text-sm text-red-400" role="alert">{{ serverError }}</p>

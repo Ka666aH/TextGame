@@ -5,6 +5,8 @@ import {
   validateLoginForm,
   validateOptionalName,
   validatePassword,
+  validatePasswordConfirmation,
+  validateRegisterForm,
   validateSeed,
 } from '../lib/validation'
 
@@ -45,14 +47,53 @@ describe('validatePassword', () => {
 })
 
 describe('validateLoginForm', () => {
-  it('возвращает обе ошибки сразу', () => {
-    const errors = validateLoginForm('ab', 'weak')
-    expect(errors.login).not.toBeNull()
+  it('на входе сложность пароля не проверяется', () => {
+    // Пароль уже существует: диктовать игроку его состав нельзя.
+    expect(validateLoginForm('player', 'weakpass')).toEqual({ login: null, password: null })
+  })
+
+  it('пустой пароль — ошибка', () => {
+    expect(validateLoginForm('player', '').password).not.toBeNull()
+  })
+
+  it('логин проверяется как обычно', () => {
+    expect(validateLoginForm('ab', 'x').login).not.toBeNull()
+  })
+})
+
+describe('validatePasswordConfirmation', () => {
+  it('требует повторить пароль', () => {
+    expect(validatePasswordConfirmation('Pass1', '')).not.toBeNull()
+  })
+
+  it('ловит несовпадение', () => {
+    expect(validatePasswordConfirmation('Pass1', 'Pass2')).not.toBeNull()
+  })
+
+  it('совпадающие пароли проходят', () => {
+    expect(validatePasswordConfirmation('Pass1', 'Pass1')).toBeNull()
+  })
+})
+
+describe('validateRegisterForm', () => {
+  it('на регистрации требования к паролю действуют', () => {
+    const errors = validateRegisterForm('player', 'weak', 'weak')
     expect(errors.password).not.toBeNull()
+    expect(errors.confirmation).toBeNull()
+  })
+
+  it('несовпадение подтверждения видно сразу', () => {
+    const errors = validateRegisterForm('player', 'Pass1', 'Pass2')
+    expect(errors.password).toBeNull()
+    expect(errors.confirmation).not.toBeNull()
   })
 
   it('корректная форма ошибок не даёт', () => {
-    expect(validateLoginForm('player', 'Pass1')).toEqual({ login: null, password: null })
+    expect(validateRegisterForm('player', 'Pass1', 'Pass1')).toEqual({
+      login: null,
+      password: null,
+      confirmation: null,
+    })
   })
 })
 

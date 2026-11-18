@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 
 import { isChestItem, itemId, itemNumber, roomItemAction } from '../../api/items'
 import type { InventoryItem } from '../../api/types'
 import { reportGameError, runGameAction, useGameBusy } from '../../composables/game'
+import { canSearchRoom } from '../../lib/rooms'
 import {
   roomItemsQueryOptions,
   useBuyRoomItemMutation,
@@ -14,7 +15,7 @@ import {
 import ChestCard from './ChestCard.vue'
 import ItemCard from './ItemCard.vue'
 
-const props = defineProps<{ roomNumber: number; inShop: boolean }>()
+const props = defineProps<{ roomNumber: number; roomName: string; inShop: boolean }>()
 
 const { busy } = useGameBusy()
 
@@ -28,6 +29,19 @@ const buyMutation = useBuyRoomItemMutation()
 
 const items = computed<InventoryItem[]>(() => roomItems.data.value ?? [])
 const searched = computed(() => roomItems.data.value !== undefined)
+const failed = computed(() => roomItems.error.value !== null)
+
+// Стартовая и пустая комнаты заведомо без предметов: там даже кнопки нет.
+const searchable = computed(() => canSearchRoom(props.roomName))
+
+/**
+ * Комната показывает содержимое сразу: отдельный шаг «Обыскать» больше не
+ * нужен. Повторно не обыскиваем — если список уже в кэше (возврат в комнату),
+ * он актуален, а лишний POST ничего не даёт.
+ */
+onMounted(() => {
+  if (searchable.value && roomItems.data.value === undefined) void search()
+})
 
 function priceOf(item: InventoryItem): string {
   const cost = itemNumber(item, 'cost')
@@ -88,12 +102,13 @@ async function buy(item: InventoryItem): Promise<void> {
 
       <div class="flex gap-2">
         <button
+          v-if="searchable"
           type="button"
           class="rounded border border-stone-700 px-3 py-1 text-xs text-stone-200 hover:border-stone-500 hover:text-white disabled:opacity-40"
           :disabled="busy"
           @click="search"
         >
-          {{ searched ? 'Обыскать снова' : 'Обыскать' }}
+          {{ searched ? 'Обыскать заново' : 'Обыскать' }}
         </button>
 
         <button
@@ -108,7 +123,11 @@ async function buy(item: InventoryItem): Promise<void> {
       </div>
     </div>
 
-    <p v-if="!searched" class="text-sm text-stone-500">Комнату ещё не обыскивали.</p>
+    <p v-if="!searchable" class="text-sm text-stone-500">Здесь искать нечего.</p>
+    <p v-else-if="failed" class="text-sm text-red-300">
+      Не удалось обыскать комнату. Нажми «Обыскать».
+    </p>
+    <p v-else-if="!searched" class="text-sm text-stone-500">Обыскиваю комнату…</p>
     <p v-else-if="items.length === 0" class="text-sm text-stone-500">Пусто.</p>
 
     <ul v-else class="space-y-2">

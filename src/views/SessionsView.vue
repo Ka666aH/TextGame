@@ -6,7 +6,7 @@ import { isApiError, messageForError } from '../api/errors'
 import type { CreateSessionPayload } from '../api/sessions'
 import type { Session } from '../api/types'
 import { MAX_NAME_LENGTH } from '../api/labels'
-import { formatDateTime, newestFirst } from '../lib/format'
+import { formatDateTime, formatSeed, newestFirst } from '../lib/format'
 import { validateOptionalName, validateSeed } from '../lib/validation'
 import { useMeQuery } from '../queries/auth'
 import {
@@ -171,7 +171,10 @@ async function handleDelete(session: Session): Promise<void> {
       >
         <div class="min-w-0 flex-1">
           <p class="truncate text-sm text-stone-100">{{ session.name || 'Без названия' }}</p>
-          <p class="text-xs text-stone-500">создана {{ formatDateTime(session.createdAt) }}</p>
+          <p class="text-xs text-stone-500">
+            создана {{ formatDateTime(session.createdAt) }} · сид
+            <span class="font-mono">{{ formatSeed(session.seed) }}</span>
+          </p>
         </div>
 
         <span

@@ -11,6 +11,10 @@ export interface LoginFormErrors {
   password: string | null
 }
 
+export interface RegisterFormErrors extends LoginFormErrors {
+  confirmation: string | null
+}
+
 export function validateLogin(value: string): string | null {
   const login = value.trim()
   if (login.length < LOGIN_MIN_LENGTH) {
@@ -32,10 +36,39 @@ export function validatePassword(value: string): string | null {
   return null
 }
 
+/**
+ * Вход: сложность пароля здесь не проверяется.
+ *
+ * Правила придуманы для регистрации. На входе они дают ложный отказ: пароль
+ * уже существует, и требовать от него заглавную букву с цифрой — значит
+ * диктовать игроку, каким был его пароль.
+ */
 export function validateLoginForm(login: string, password: string): LoginFormErrors {
   return {
     login: validateLogin(login),
+    password: password.length === 0 ? 'Введи пароль.' : null,
+  }
+}
+
+export function validatePasswordConfirmation(
+  password: string,
+  confirmation: string,
+): string | null {
+  if (confirmation.length === 0) return 'Повтори пароль.'
+  if (confirmation !== password) return 'Пароли не совпадают.'
+  return null
+}
+
+/** Регистрация: правила сервера плюс подтверждение пароля. */
+export function validateRegisterForm(
+  login: string,
+  password: string,
+  confirmation: string,
+): RegisterFormErrors {
+  return {
+    login: validateLogin(login),
     password: validatePassword(password),
+    confirmation: validatePasswordConfirmation(password, confirmation),
   }
 }
 
