@@ -8,6 +8,9 @@ export const queryKeys = {
   saves: ['saves'] as const,
   state: ['state'] as const,
   map: ['map'] as const,
-  /** Предметы комнаты привязаны к её номеру: переход в другую комнату — другой ключ. */
+
+  /** Общий префикс предметов комнаты — для сброса всего списка сразу. */
+  roomItemsAll: ['roomItems'] as const,
+  /** Предметы комнаты привязаны к номеру: переход в другую комнату — другой ключ. */
   roomItems: (roomNumber: number) => ['roomItems', roomNumber] as const,
 }

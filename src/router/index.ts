@@ -9,7 +9,7 @@ const StubView = () => import('../views/StubView.vue')
 const routes: RouteRecordRaw[] = [
   { path: '/login', name: 'login', component: () => import('../views/LoginView.vue') },
   { path: '/', name: 'root', component: StubView, props: { title: 'Загрузка' } },
-  { path: '/sessions', name: 'sessions', component: StubView, props: { title: 'Игровые сессии' } },
+  { path: '/sessions', name: 'sessions', component: () => import('../views/SessionsView.vue') },
   { path: '/saves', name: 'saves', component: StubView, props: { title: 'Сохранения' } },
   { path: '/game', name: 'game', component: StubView, props: { title: 'Игра' } },
   { path: '/game-over', name: 'gameOver', component: StubView, props: { title: 'Конец игры' } },

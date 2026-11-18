@@ -49,3 +49,17 @@ export function validateOptionalName(value: string): string | null {
   }
   return null
 }
+
+/**
+ * Seed уходит на сервер строкой как есть: это 64-битное число, и `Number()`
+ * потерял бы точность выше 2^53. Проверяем только форму записи — диапазон
+ * `long` пусть проверяет сервер.
+ */
+export function validateSeed(value: string): string | null {
+  const seed = value.trim()
+  if (seed.length === 0) return null
+  if (!/^-?\d+$/.test(seed)) {
+    return 'Seed должен состоять только из цифр (минус — в начале).'
+  }
+  return null
+}

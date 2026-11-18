@@ -5,6 +5,7 @@ import {
   validateLoginForm,
   validateOptionalName,
   validatePassword,
+  validateSeed,
 } from '../lib/validation'
 
 describe('validateLogin', () => {
@@ -63,5 +64,27 @@ describe('validateOptionalName', () => {
   it('не пропускает имя длиннее ста символов, иначе сервер ответит 500', () => {
     expect(validateOptionalName('a'.repeat(100))).toBeNull()
     expect(validateOptionalName('a'.repeat(101))).not.toBeNull()
+  })
+})
+
+describe('validateSeed', () => {
+  it('пустой seed допустим: сервер сгенерирует сам', () => {
+    expect(validateSeed('')).toBeNull()
+    expect(validateSeed('   ')).toBeNull()
+  })
+
+  it('принимает обычное и отрицательное число', () => {
+    expect(validateSeed('123456789012345678')).toBeNull()
+    expect(validateSeed('-42')).toBeNull()
+  })
+
+  it('не пропускает буквы и дробную часть', () => {
+    expect(validateSeed('12a45')).not.toBeNull()
+    expect(validateSeed('1.5')).not.toBeNull()
+  })
+
+  it('не ограничивает длину: за диапазон `long` отвечает сервер', () => {
+    expect(validateSeed('9223372036854775807')).toBeNull()
+    expect(validateSeed('92233720368547758070')).toBeNull()
   })
 })
