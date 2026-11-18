@@ -10,12 +10,19 @@ export function useSessionsQuery() {
   })
 }
 
-/** Создание сразу делает сессию активной, поэтому меняется и `me`. */
+/**
+ * Создание сразу делает сессию активной, поэтому меняется и `me`, и всё
+ * игровое состояние: подземелье новое, старые комнаты и списки предметов
+ * к нему не относятся.
+ */
 export function useCreateSessionMutation() {
   const client = useQueryClient()
   return useMutation({
     mutationFn: createSession,
     onSuccess: async () => {
+      client.removeQueries({ queryKey: queryKeys.state })
+      client.removeQueries({ queryKey: queryKeys.map })
+      client.removeQueries({ queryKey: queryKeys.roomItemsAll })
       await Promise.all([
         client.invalidateQueries({ queryKey: queryKeys.me }),
         client.invalidateQueries({ queryKey: queryKeys.sessions }),

@@ -40,7 +40,11 @@ export function useStateQuery() {
  * Обыск — это POST, поэтому он не может быть запросом, срабатывающим при
  * монтировании: сервер меняет флаг «обыскано». Запрос выключен и служит
  * хранилищем; данные кладёт `refetch()` из кнопки, а `queryFn` — это и есть
- * обыск. Комната передаётся числом, а компонент пересоздаётся при переходе.
+ * обыск.
+ *
+ * Ключ содержит номер комнаты, поэтому у каждой комнаты своя запись, и она
+ * переживает смену комнаты: `enabled: false` не даёт запросу сходить на сервер
+ * сам, так что вернувшись игрок видит уже найденный лут.
  */
 export function roomItemsQueryOptions(roomNumber: number) {
   return {
@@ -57,9 +61,15 @@ export function rememberGameOver(gameOver: GameOver): void {
   queryClient.setQueryData(queryKeys.gameOver, gameOver)
 }
 
-/** Предметы комнаты забываем: обыск — POST, его нельзя дёргать без игрока. */
-function forgetRoomItems(): void {
-  queryClient.removeQueries({ queryKey: queryKeys.roomItemsAll })
+/**
+ * Список предметов комнаты забываем точечно. Сам по себе он не устаревает:
+ * содержимое комнаты меняется только нашими же действиями, а каждое из них
+ * перечитывает список. Поэтому, вернувшись в комнату, игрок сразу видит то,
+ * что уже нашёл, и повторный обыск не нужен — обыск это POST, и дёргать его
+ * без действия игрока нельзя.
+ */
+function forgetRoomItems(roomNumber: number): void {
+  queryClient.removeQueries({ queryKey: queryKeys.roomItems(roomNumber) })
 }
 
 export function useTakeRoomItemMutation() {
@@ -95,8 +105,8 @@ export function useSellItemMutation() {
     onSuccess: (gameInfo) => {
       queryClient.setQueryData(queryKeys.state, gameInfo)
       // Проданный предмет возвращается в комнату, поэтому прежний список
-      // предметов комнаты больше не соответствует серверу.
-      forgetRoomItems()
+      // предметов этой комнаты больше не соответствует серверу.
+      forgetRoomItems(gameInfo.room.number)
     },
   })
 }
@@ -134,8 +144,12 @@ export function useUnequipItemMutation() {
   })
 }
 
+/**
+ * Смена комнаты перечитывает состояние и карту; списки предметов комнат
+ * при этом остаются в кэше. Это не только экономия на обыске: возврат назад
+ * должен показывать уже найденный лут, а не пустую комнату.
+ */
 async function afterRoomChange(): Promise<void> {
-  forgetRoomItems()
   await Promise.all([
     queryClient.invalidateQueries({ queryKey: queryKeys.state }),
     queryClient.invalidateQueries({ queryKey: queryKeys.map }),
