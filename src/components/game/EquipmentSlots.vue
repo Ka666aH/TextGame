@@ -27,16 +27,17 @@ function valueOf(item: InventoryItem, key: 'damage' | 'damageBlock'): number | n
     <h2 class="mb-2 text-xs tracking-wide text-stone-500 uppercase">экипировка</h2>
 
     <div class="space-y-2">
-      <div
-        class="flex items-start gap-2 rounded border border-stone-800 bg-stone-900/50 px-3 py-2"
-      >
+      <div class="flex items-start gap-2 rounded border border-stone-800 bg-stone-900/50 px-3 py-2">
         <EntityArt kind="item" :name="weapon.name" size="sm" />
 
         <div class="min-w-0 flex-1">
           <p class="text-[11px] tracking-wide text-stone-500 uppercase">оружие</p>
           <p class="text-sm break-words text-stone-100">
             {{ weapon.name }}
-            <span v-if="valueOf(weapon, 'damage') !== null" class="font-mono text-xs text-stone-400">
+            <span
+              v-if="valueOf(weapon, 'damage') !== null"
+              class="font-mono text-xs text-stone-400"
+            >
               +{{ valueOf(weapon, 'damage') }}
             </span>
           </p>
@@ -52,9 +53,7 @@ function valueOf(item: InventoryItem, key: 'damage' | 'damageBlock'): number | n
         </button>
       </div>
 
-      <div
-        class="flex items-start gap-2 rounded border border-stone-800 bg-stone-900/50 px-3 py-2"
-      >
+      <div class="flex items-start gap-2 rounded border border-stone-800 bg-stone-900/50 px-3 py-2">
         <EntityArt kind="item" :name="helm?.name ?? ''" size="sm" />
 
         <div class="min-w-0 flex-1">
@@ -62,7 +61,10 @@ function valueOf(item: InventoryItem, key: 'damage' | 'damageBlock'): number | n
           <p class="text-sm break-words" :class="helm ? 'text-stone-100' : 'text-stone-600'">
             <template v-if="helm">
               {{ helm.name }}
-              <span v-if="valueOf(helm, 'damageBlock') !== null" class="font-mono text-xs text-stone-400">
+              <span
+                v-if="valueOf(helm, 'damageBlock') !== null"
+                class="font-mono text-xs text-stone-400"
+              >
                 +{{ valueOf(helm, 'damageBlock') }}
               </span>
             </template>
@@ -80,9 +82,7 @@ function valueOf(item: InventoryItem, key: 'damage' | 'damageBlock'): number | n
         </button>
       </div>
 
-      <div
-        class="flex items-start gap-2 rounded border border-stone-800 bg-stone-900/50 px-3 py-2"
-      >
+      <div class="flex items-start gap-2 rounded border border-stone-800 bg-stone-900/50 px-3 py-2">
         <EntityArt kind="item" :name="chestplate?.name ?? ''" size="sm" />
 
         <div class="min-w-0 flex-1">

@@ -43,22 +43,23 @@ const stats = computed<string[]>(() => {
 
 <template>
   <div class="rounded border border-stone-800 bg-stone-900/50 px-3 py-2">
-    <div class="flex items-start gap-3">
+    <div class="flex flex-wrap items-start gap-x-3 gap-y-2">
       <EntityArt kind="item" :name="item.name" />
 
-      <div class="min-w-0 flex-1">
+      <div class="min-w-0 grow basis-24">
         <p class="text-sm break-words text-stone-100">{{ item.name }}</p>
         <p class="text-xs text-stone-500">
           {{ label }}
           <span v-for="row in stats" :key="row"> · {{ row }}</span>
         </p>
       </div>
-    </div>
 
-    <!-- Действия встают отдельной строкой: в узкой колонке три кнопки
-         сжимали название предмета до многоточия. -->
-    <div v-if="$slots.actions" class="mt-2 flex flex-wrap gap-2 empty:hidden">
-      <slot name="actions" />
+      <!-- Действия стоят справа от названия. Если места мало (в узкой
+           колонке инвентаря три кнопки не помещаются), блок переносится
+           на собственную строку целиком, а не сжимает название. -->
+      <div v-if="$slots.actions" class="flex shrink-0 flex-wrap gap-2 empty:hidden">
+        <slot name="actions" />
+      </div>
     </div>
   </div>
 </template>

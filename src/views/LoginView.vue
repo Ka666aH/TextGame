@@ -3,11 +3,7 @@ import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { fieldError, isApiError, messageForError } from '../api/errors'
-import {
-  validateLoginForm,
-  validateRegisterForm,
-  type RegisterFormErrors,
-} from '../lib/validation'
+import { validateLoginForm, validateRegisterForm, type RegisterFormErrors } from '../lib/validation'
 import { meQueryOptions, useLoginMutation, useRegisterMutation } from '../queries/auth'
 import { queryClient } from '../queries/client'
 
@@ -59,15 +55,20 @@ async function submit(): Promise<void> {
   serverError.value = null
 
   // На входе пароль не проверяется на сложность, только на непустоту:
-  // правила придуманы для регистрации.
-  const errors =
-    mode.value === 'login'
-      ? validateLoginForm(form.login, form.password)
-      : validateRegisterForm(form.login, form.password, form.confirmation)
-
-  formErrors.login = errors.login
-  formErrors.password = errors.password
-  formErrors.confirmation = 'confirmation' in errors ? errors.confirmation : null
+  // правила придуманы для регистрации. У форм разные наборы ошибок, поэтому
+  // ветвление явное: тернарник даёт объединение типов, в котором
+  // `confirmation` выводится как `unknown`.
+  if (mode.value === 'login') {
+    const errors = validateLoginForm(form.login, form.password)
+    formErrors.login = errors.login
+    formErrors.password = errors.password
+    formErrors.confirmation = null
+  } else {
+    const errors = validateRegisterForm(form.login, form.password, form.confirmation)
+    formErrors.login = errors.login
+    formErrors.password = errors.password
+    formErrors.confirmation = errors.confirmation
+  }
 
   if (
     formErrors.login !== null ||

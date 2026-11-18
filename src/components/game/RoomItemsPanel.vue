@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 
 import { isChestItem, itemId, itemNumber, roomItemAction } from '../../api/items'
 import type { InventoryItem } from '../../api/types'
@@ -31,17 +31,8 @@ const items = computed<InventoryItem[]>(() => roomItems.data.value ?? [])
 const searched = computed(() => roomItems.data.value !== undefined)
 const failed = computed(() => roomItems.error.value !== null)
 
-// Стартовая и пустая комнаты заведомо без предметов: там даже кнопки нет.
+// Стартовая и пустая комнаты заведомо без предметов: блока в них нет вовсе.
 const searchable = computed(() => canSearchRoom(props.roomName))
-
-/**
- * Комната показывает содержимое сразу: отдельный шаг «Обыскать» больше не
- * нужен. Повторно не обыскиваем — если список уже в кэше (возврат в комнату),
- * он актуален, а лишний POST ничего не даёт.
- */
-onMounted(() => {
-  if (searchable.value && roomItems.data.value === undefined) void search()
-})
 
 function priceOf(item: InventoryItem): string {
   const cost = itemNumber(item, 'cost')
@@ -62,6 +53,27 @@ async function search(): Promise<void> {
     busy.value = false
   }
 }
+
+/**
+ * Автообыск: комната показывает содержимое сразу, отдельного шага «Обыскать»
+ * нет. Повторно не обыскиваем — если список уже в кэше (возврат в комнату),
+ * он актуален, а лишний POST ничего не даёт.
+ *
+ * Попытка не теряется, если экран ещё держит блокировку от предыдущего
+ * действия: панель монтируется внутри «Идти дальше», пока `busy` не снят.
+ * Без ожидания она навсегда оставалась бы в «Обыскиваю комнату…» — обыск
+ * не начинался, а больше его ничто не запускает.
+ */
+function autoSearch(): void {
+  if (!searchable.value || searched.value || failed.value || busy.value) return
+  void search()
+}
+
+onMounted(autoSearch)
+
+watch(busy, (isBusy) => {
+  if (!isBusy) autoSearch()
+})
 
 async function take(item: InventoryItem): Promise<void> {
   const id = itemId(item)
@@ -94,7 +106,7 @@ async function buy(item: InventoryItem): Promise<void> {
 </script>
 
 <template>
-  <section class="rounded border border-stone-800 bg-stone-900/40 p-3">
+  <section v-if="searchable" class="rounded border border-stone-800 bg-stone-900/40 p-3">
     <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
       <h2 class="text-xs tracking-wide text-stone-500 uppercase">
         в комнате{{ inShop ? ' (магазин)' : '' }}
@@ -102,7 +114,6 @@ async function buy(item: InventoryItem): Promise<void> {
 
       <div class="flex gap-2">
         <button
-          v-if="searchable"
           type="button"
           class="rounded border border-stone-700 px-3 py-1 text-xs text-stone-200 hover:border-stone-500 hover:text-white disabled:opacity-40"
           :disabled="busy"
@@ -123,10 +134,7 @@ async function buy(item: InventoryItem): Promise<void> {
       </div>
     </div>
 
-    <p v-if="!searchable" class="text-sm text-stone-500">Здесь искать нечего.</p>
-    <p v-else-if="failed" class="text-sm text-red-300">
-      Не удалось обыскать комнату. Нажми «Обыскать».
-    </p>
+    <p v-if="failed" class="text-sm text-red-300">Не удалось обыскать комнату. Нажми «Обыскать».</p>
     <p v-else-if="!searched" class="text-sm text-stone-500">Обыскиваю комнату…</p>
     <p v-else-if="items.length === 0" class="text-sm text-stone-500">Пусто.</p>
 
