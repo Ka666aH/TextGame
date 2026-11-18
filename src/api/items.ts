@@ -170,7 +170,8 @@ export type RoomItemAction = 'take' | 'buy' | 'none'
  *
  * В магазине бесплатно брать нельзя — сервер ответит `403 CAN_NOT_STEAL`,
  * поэтому «Взять» **заменяется** на «Купить», а не показывается рядом.
- * Сундук — не переносимый предмет: у него свой цикл, действий пока нет.
+ * Сундук — не переносимый предмет: у него свой цикл (`ChestCard`), и брать
+ * его нельзя, поэтому действий здесь нет.
  */
 export function roomItemAction(item: InventoryItem, inShop: boolean): RoomItemAction {
   if (isChestItem(item)) return 'none'

@@ -7,15 +7,22 @@ import {
   fetchState,
   goNextRoom,
   goToRoom,
+  hitChest,
+  openChest,
+  searchChestItems,
   searchRoom,
   sellItem,
+  takeAllChestItems,
   takeAllRoomItems,
+  takeChestItem,
   takeRoomItem,
   unequipItem,
+  unlockChest,
   useItem,
 } from '../api/game'
 import { isBattleLogArray, isBattleWin, isGameOver } from '../api/guards'
-import type { GameOver } from '../api/types'
+import type { GameInfo, GameOver } from '../api/types'
+import { isPlainChestHit } from '../lib/chests'
 import { appendBattleLog } from '../composables/game'
 import { queryClient } from './client'
 import { queryKeys } from './keys'
@@ -203,6 +210,104 @@ export function useAttackMutation() {
       // В ответе нет состояния вообще: прочность могла сломаться, а `BattleWin`
       // не содержит `gameInfo` — перечитывание обязательно.
       await queryClient.invalidateQueries({ queryKey: queryKeys.state })
+    },
+  })
+}
+
+/**
+ * Лут сундука — то же устройство, что и у предметов комнаты: выключенный
+ * запрос служит хранилищем. Данные кладёт `open` (он сразу возвращает лут)
+ * либо `refetch` для сундука, который открыли в прошлый визит.
+ */
+export function chestItemsQueryOptions(chestId: number) {
+  return {
+    queryKey: queryKeys.chestItems(chestId),
+    queryFn: () => searchChestItems(chestId),
+    enabled: false,
+    staleTime: Number.POSITIVE_INFINITY,
+  }
+}
+
+function forgetChestItems(chestId: number): void {
+  queryClient.removeQueries({ queryKey: queryKeys.chestItems(chestId) })
+}
+
+/** Номер текущей комнаты известен только из кэша состояния. */
+function forgetCurrentRoomItems(): void {
+  const info = queryClient.getQueryData<GameInfo>(queryKeys.state)
+  if (info !== undefined) forgetRoomItems(info.room.number)
+}
+
+/** Лут приходит прямо в ответе: обыск после открытия не нужен. */
+export function useOpenChestMutation() {
+  return useMutation({
+    mutationFn: openChest,
+    onSuccess: (result, chestId) => {
+      if (isGameOver(result)) {
+        rememberGameOver(result)
+        return
+      }
+      queryClient.setQueryData(queryKeys.chestItems(chestId), result)
+    },
+  })
+}
+
+/** Отпирание всегда тратит ключ, поэтому счётчик ключей надо перечитать. */
+export function useUnlockChestMutation() {
+  return useMutation({
+    mutationFn: unlockChest,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.state })
+    },
+  })
+}
+
+/**
+ * Удар по сундуку. Обычный сундук остаётся в комнате и в её списке, а мимик
+ * уходит в бой, и после смерти возвращается мёртвым: тогда и комната, и лут
+ * этого сундука уже не соответствуют серверу.
+ */
+export function useHitChestMutation() {
+  return useMutation({
+    mutationFn: hitChest,
+    onSuccess: async (result, chestId) => {
+      if (isGameOver(result)) {
+        rememberGameOver(result)
+        return
+      }
+
+      const log = isBattleWin(result) ? result.battleLog : result
+      appendBattleLog([log])
+
+      // Состояния в ответе нет: хиты и прочность оружия могли измениться.
+      await queryClient.invalidateQueries({ queryKey: queryKeys.state })
+
+      if (isBattleWin(result) || !isPlainChestHit(log)) {
+        forgetChestItems(chestId)
+        // Обыск комнаты — POST под `RequireNotInBattle`, в бою его не позвать,
+        // поэтому список просто забываем: игрок обыщет комнату после победы.
+        forgetCurrentRoomItems()
+      }
+    },
+  })
+}
+
+export function useTakeChestItemMutation() {
+  return useMutation({
+    mutationFn: (vars: { chestId: number; itemId: number }) =>
+      takeChestItem(vars.chestId, vars.itemId),
+    onSuccess: (gameInfo) => {
+      queryClient.setQueryData(queryKeys.state, gameInfo)
+    },
+  })
+}
+
+/** `404 NOTHING_FOUND`, если в сундуке пусто. */
+export function useTakeAllChestItemsMutation() {
+  return useMutation({
+    mutationFn: takeAllChestItems,
+    onSuccess: (gameInfo) => {
+      queryClient.setQueryData(queryKeys.state, gameInfo)
     },
   })
 }

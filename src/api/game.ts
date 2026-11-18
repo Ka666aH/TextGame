@@ -1,5 +1,14 @@
 import { api } from './http'
-import type { BattleLog, BattleWin, GameInfo, GameOver, InventoryItem, MapRoom, Room } from './types'
+import type {
+  BattleLog,
+  BattleWin,
+  ChestDto,
+  GameInfo,
+  GameOver,
+  InventoryItem,
+  MapRoom,
+  Room,
+} from './types'
 
 export type EquipmentSlot = 'weapon' | 'helm' | 'chestplate'
 
@@ -97,4 +106,50 @@ export async function goToRoom(roomId: number): Promise<MaybeGameOver<Room>> {
  */
 export async function attackEnemy(): Promise<AttackResult> {
   return await api<AttackResult>('/state/rooms/current/enemy/attack', { method: 'POST' })
+}
+
+/**
+ * Три формы с одним кодом `200` у удара по сундуку, но лог **один**:
+ * по обычному сундуку ответ всегда `BattleLog`, по мимику — ещё `BattleWin`
+ * или конец игры.
+ */
+export type ChestHitResult = BattleLog | BattleWin | GameOver
+
+/** Сундук — предмет комнаты, поэтому все действия адресуются его `id`. */
+function chestPath(chestId: number, tail: string): string {
+  return `/state/rooms/current/items/${chestId}/chest${tail}`
+}
+
+/**
+ * Удар по сундуку. По обычному сундуку ломает оружие и может ранить игрока,
+ * по мимику начинает бой. Запертый сундук бить можно — проверки нет.
+ */
+export async function hitChest(chestId: number): Promise<ChestHitResult> {
+  return await api<ChestHitResult>(chestPath(chestId, '/hit'), { method: 'POST' })
+}
+
+/**
+ * Открыть сундук: сразу возвращает лут. Запертый → `403 LOCKED`,
+ * мимик → `200 GameOver` (игра заканчивается поражением).
+ */
+export async function openChest(chestId: number): Promise<MaybeGameOver<InventoryItem[]>> {
+  return await api<MaybeGameOver<InventoryItem[]>>(chestPath(chestId, '/open'), { method: 'POST' })
+}
+
+/** Отпереть: всегда тратит ключ. Отдаёт сам сундук — без `cost`. */
+export async function unlockChest(chestId: number): Promise<ChestDto> {
+  return await api<ChestDto>(chestPath(chestId, '/unlock'), { method: 'POST' })
+}
+
+/** Лут уже открытого сундука: `403 LOCKED` / `403 CLOSED`, если открыть не успели. */
+export async function searchChestItems(chestId: number): Promise<InventoryItem[]> {
+  return await api<InventoryItem[]>(chestPath(chestId, '/items'), { method: 'POST' })
+}
+
+export async function takeChestItem(chestId: number, itemId: number): Promise<GameInfo> {
+  return await api<GameInfo>(chestPath(chestId, `/items/${itemId}/take`), { method: 'POST' })
+}
+
+export async function takeAllChestItems(chestId: number): Promise<GameInfo> {
+  return await api<GameInfo>(chestPath(chestId, '/items/takeall'), { method: 'POST' })
 }

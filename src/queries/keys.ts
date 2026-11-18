@@ -15,4 +15,7 @@ export const queryKeys = {
   roomItemsAll: ['roomItems'] as const,
   /** Предметы комнаты привязаны к номеру: переход в другую комнату — другой ключ. */
   roomItems: (roomNumber: number) => ['roomItems', roomNumber] as const,
+
+  /** Лут сундука: своя запись на каждый сундук. */
+  chestItems: (chestId: number) => ['chestItems', chestId] as const,
 }

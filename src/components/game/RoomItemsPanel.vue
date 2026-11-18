@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/vue-query'
 import { computed } from 'vue'
 
-import { itemId, itemNumber, roomItemAction } from '../../api/items'
+import { isChestItem, itemId, itemNumber, roomItemAction } from '../../api/items'
 import type { InventoryItem } from '../../api/types'
 import { reportGameError, runGameAction, useGameBusy } from '../../composables/game'
 import {
@@ -11,6 +11,7 @@ import {
   useTakeAllRoomItemsMutation,
   useTakeRoomItemMutation,
 } from '../../queries/game'
+import ChestCard from './ChestCard.vue'
 import ItemCard from './ItemCard.vue'
 
 const props = defineProps<{ roomNumber: number; inShop: boolean }>()
@@ -111,7 +112,7 @@ async function buy(item: InventoryItem): Promise<void> {
     <p v-else-if="items.length === 0" class="text-sm text-stone-500">Пусто.</p>
 
     <ul v-else class="space-y-2">
-      <li v-for="item in items" :key="item.id ?? item.name">
+      <li v-for="item in items" :key="item.id ?? item.name" class="space-y-1">
         <ItemCard :item="item">
           <template #actions>
             <button
@@ -135,6 +136,8 @@ async function buy(item: InventoryItem): Promise<void> {
             </button>
           </template>
         </ItemCard>
+
+        <ChestCard v-if="isChestItem(item)" :chest="item" />
       </li>
     </ul>
   </section>
