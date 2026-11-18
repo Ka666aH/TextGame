@@ -69,17 +69,6 @@ export function rememberGameOver(gameOver: GameOver): void {
 }
 
 /**
- * Список предметов комнаты забываем точечно. Сам по себе он не устаревает:
- * содержимое комнаты меняется только нашими же действиями, а каждое из них
- * перечитывает список. Поэтому, вернувшись в комнату, игрок сразу видит то,
- * что уже нашёл, и повторный обыск не нужен — обыск это POST, и дёргать его
- * без действия игрока нельзя.
- */
-function forgetRoomItems(roomNumber: number): void {
-  queryClient.removeQueries({ queryKey: queryKeys.roomItems(roomNumber) })
-}
-
-/**
  * Бой начат ударом по сундуку. Если мимик погиб, сундук возвращается в комнату
  * уже мёртвым и отпертым — и список комнаты надо перечитать, иначе на экране
  * останется прежний запертый сундук, который просит ключ.
@@ -116,11 +105,11 @@ export function useBuyRoomItemMutation() {
 export function useSellItemMutation() {
   return useMutation({
     mutationFn: sellItem,
-    onSuccess: (gameInfo) => {
+    onSuccess: async (gameInfo) => {
       queryClient.setQueryData(queryKeys.state, gameInfo)
-      // Проданный предмет возвращается в комнату, поэтому прежний список
-      // предметов этой комнаты больше не соответствует серверу.
-      forgetRoomItems(gameInfo.room.number)
+      // Проданный предмет возвращается в комнату, где стоит игрок, поэтому
+      // её список надо перечитать: иначе он появится только после обыска.
+      await refreshCurrentRoomItems()
     },
   })
 }
