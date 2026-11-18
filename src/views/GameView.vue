@@ -2,7 +2,9 @@
 import { computed, ref, watch, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { isApiError, messageForError } from '../api/errors'
+import { fetchMe } from '../api/auth'
+import { CODE, isHttpFallbackCode } from '../api/codes'
+import { isApiError, messageForError, type ApiError } from '../api/errors'
 import type { EquipmentSlot } from '../api/game'
 import { isBattleWin, isGameOver } from '../api/guards'
 import { canEquip, canSell, canUse, hasMap, itemId } from '../api/items'
@@ -23,6 +25,7 @@ import InventoryList from '../components/game/InventoryList.vue'
 import RoomItemsPanel from '../components/game/RoomItemsPanel.vue'
 import RoomPanel from '../components/game/RoomPanel.vue'
 import StatBar from '../components/game/StatBar.vue'
+import { queryClient } from '../queries/client'
 import {
   useAttackMutation,
   useEquipItemMutation,
@@ -33,6 +36,7 @@ import {
   useUnequipItemMutation,
   useUseItemMutation,
 } from '../queries/game'
+import { queryKeys } from '../queries/keys'
 import { useUiStore } from '../stores/ui'
 
 const router = useRouter()
@@ -92,8 +96,50 @@ const errorText = computed(() => {
   return isApiError(cause) ? messageForError(cause) : 'Повтори попытку позже.'
 })
 
+const failure = computed<ApiError | null>(() => (isApiError(error.value) ? error.value : null))
+
+/**
+ * Два отказа `/state`, из которых нужен выход, а не «повтори попытку».
+ * Ни один DTO их не сообщает, поэтому различаем по коду ответа (§8).
+ */
+const sessionGone = computed(() => {
+  const cause = failure.value
+  if (cause === null) return false
+  // Пустой `403` — policy `RequireSession`: активной игры нет.
+  if (cause.status === 403 && isHttpFallbackCode(cause.code)) return true
+  // `404 SESSION_NOT_FOUND` — сессию удалили, например в другой вкладке.
+  return cause.status === 404 && cause.code === CODE.sessionNotFound
+})
+
+/**
+ * `404 SAVE_NOT_FOUND` — у игры нет сохранений, из которых сервер поднимает
+ * состояние после вытеснения из кеша. Восстанавливать нечего.
+ */
+const stateLost = computed(() => failure.value?.code === CODE.saveNotFound)
+
+/**
+ * Переспрашиваем, кто мы: при `401` разлогинит общий обработчик, здесь
+ * ничего не делаем. Если сессии действительно нет, экран игры бессмыслен.
+ */
+watch(sessionGone, async (gone) => {
+  if (!gone) return
+
+  const me = await fetchMe()
+  if (me === null) return
+
+  queryClient.setQueryData(queryKeys.me, me)
+  if (me.sessionId !== null) return
+
+  ui.notify('Игра не найдена: возможно, её удалили в другой вкладке.')
+  await router.replace({ name: 'sessions' })
+})
+
 async function leaveToGameOver(): Promise<void> {
   await router.push({ name: 'gameOver' })
+}
+
+async function goTo(name: 'sessions' | 'saves'): Promise<void> {
+  await router.push({ name })
 }
 
 async function handleAttack(): Promise<void> {
@@ -166,6 +212,34 @@ async function handleSell(item: InventoryItem): Promise<void> {
 
 <template>
   <p v-if="isPending" class="text-sm text-stone-400">Загружаю состояние…</p>
+
+  <section
+    v-else-if="stateLost"
+    class="rounded border border-amber-900 bg-amber-950/30 p-4 text-sm text-amber-100"
+  >
+    <p>Состояние этой игры не из чего восстановить.</p>
+    <p class="mt-2 text-xs opacity-80">
+      После вытеснения из кеша сервер поднимает партию из последнего сохранения, но у этой игры
+      сохранений не нашлось. Выбери другую игру или создай новую — ход партии уже не вернуть.
+    </p>
+    <div class="mt-3 flex flex-wrap gap-2">
+      <button
+        type="button"
+        class="rounded bg-stone-200 px-4 py-2 text-sm font-medium text-stone-900 hover:bg-white"
+        @click="goTo('saves')"
+      >
+        К сохранениям
+      </button>
+
+      <button
+        type="button"
+        class="rounded border border-stone-700 px-4 py-2 text-sm text-stone-200 hover:border-stone-500 hover:text-white"
+        @click="goTo('sessions')"
+      >
+        К списку игр
+      </button>
+    </div>
+  </section>
 
   <section
     v-else-if="isError"

@@ -34,6 +34,7 @@ export function useLoadSaveMutation() {
       client.removeQueries({ queryKey: queryKeys.state })
       client.removeQueries({ queryKey: queryKeys.map })
       client.removeQueries({ queryKey: queryKeys.roomItemsAll })
+      client.removeQueries({ queryKey: queryKeys.gameOver })
       await client.invalidateQueries({ queryKey: queryKeys.saves })
     },
   })

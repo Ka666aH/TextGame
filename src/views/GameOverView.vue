@@ -3,7 +3,7 @@ import { computed, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { isApiError, messageForError } from '../api/errors'
-import { outcomeOf } from '../api/outcome'
+import { resolveOutcome, type GameOutcome } from '../api/outcome'
 import type { GameOver } from '../api/types'
 import { queryClient } from '../queries/client'
 import { useStateQuery } from '../queries/game'
@@ -20,11 +20,20 @@ const { data: info, isPending, isError, error } = useStateQuery()
  */
 const snapshot = queryClient.getQueryData<GameOver>(queryKeys.gameOver) ?? null
 
-const outcome = computed(() => (info.value !== undefined ? outcomeOf(info.value) : 'playing'))
+const outcome = computed<GameOutcome>(() => {
+  const current = info.value
+  if (current === undefined) return 'playing'
 
-// Если партия ещё идёт, экран исхода бессмысленен.
+  // Второй аргумент — «исход уже пришёл в ответе на действие». Без него
+  // съеденный мимиком игрок считался бы живым и улетал обратно в игру.
+  return resolveOutcome(current, snapshot !== null)
+})
+
+// Если партия ещё идёт, экран исхода бессмысленен. Проверка опирается на
+// `outcome`, а не на голую эвристику, иначе «съеденный» игрок улетал бы
+// обратно в игру, где каждое действие отвечает `403 NOT_STARTED`.
 watchEffect(() => {
-  if (info.value !== undefined && outcomeOf(info.value) === 'playing') {
+  if (info.value !== undefined && outcome.value === 'playing') {
     void router.replace({ name: 'game' })
   }
 })

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { isGameFinished, isInBattle, outcomeOf } from '../api/outcome'
+import { isGameFinished, isInBattle, outcomeOf, resolveOutcome } from '../api/outcome'
 import { ROOM_NAMES } from '../api/labels'
 import type { GameInfo, Room } from '../api/types'
 
@@ -52,6 +52,22 @@ describe('outcomeOf', () => {
     expect(isGameFinished(makeInfo(normalRoom, 50))).toBe(false)
     expect(isGameFinished(makeInfo(normalRoom, 0))).toBe(true)
     expect(isGameFinished(makeInfo(exitRoom, 50))).toBe(true)
+  })
+})
+
+describe('resolveOutcome', () => {
+  it('без ответа сервера повторяет эвристику', () => {
+    expect(resolveOutcome(makeInfo(normalRoom, 50), false)).toBe('playing')
+    expect(resolveOutcome(makeInfo(normalRoom, 0), false)).toBe('lost')
+  })
+
+  it('съедение мимиком: исход в ответе превращает «играем» в поражение', () => {
+    // Здоровье цело и комната обычная, но `200 GameOver` уже пришёл.
+    expect(resolveOutcome(makeInfo(normalRoom, 50), true)).toBe('lost')
+  })
+
+  it('победа остаётся победой и при известном исходе', () => {
+    expect(resolveOutcome(makeInfo(exitRoom, 50), true)).toBe('won')
   })
 })
 

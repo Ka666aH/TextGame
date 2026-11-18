@@ -29,6 +29,21 @@ export function isGameFinished(info: GameInfo): boolean {
   return outcomeOf(info) !== 'playing'
 }
 
+/**
+ * Исход с поправкой на то, что ответ на действие уже был.
+ *
+ * Эвристика ошибается ровно в одном случае: открытый мимик съедает игрока,
+ * а `EndGame()` на сервере только снимает флаг старта — здоровье остаётся
+ * прежним, комната не «ВЫХОД». Если `200 GameOver` уже пришёл в ответе на
+ * действие, «играем» означает поражение: продолжать нечего, любое действие
+ * получит `403 NOT_STARTED` (ADR 0004).
+ */
+export function resolveOutcome(info: GameInfo, gameOverSeen: boolean): GameOutcome {
+  const derived = outcomeOf(info)
+  if (derived === 'playing' && gameOverSeen) return 'lost'
+  return derived
+}
+
 /** Идёт бой: единственный признак — враг в текущей комнате. */
 export function isInBattle(info: GameInfo): boolean {
   return 'enemy' in info.room

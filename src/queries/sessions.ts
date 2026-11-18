@@ -23,6 +23,8 @@ export function useCreateSessionMutation() {
       client.removeQueries({ queryKey: queryKeys.state })
       client.removeQueries({ queryKey: queryKeys.map })
       client.removeQueries({ queryKey: queryKeys.roomItemsAll })
+      // Текст прошлого исхода к новой игре отношения не имеет.
+      client.removeQueries({ queryKey: queryKeys.gameOver })
       await Promise.all([
         client.invalidateQueries({ queryKey: queryKeys.me }),
         client.invalidateQueries({ queryKey: queryKeys.sessions }),
@@ -43,6 +45,7 @@ export function useSelectSessionMutation() {
       client.removeQueries({ queryKey: queryKeys.state })
       client.removeQueries({ queryKey: queryKeys.map })
       client.removeQueries({ queryKey: queryKeys.roomItemsAll })
+      client.removeQueries({ queryKey: queryKeys.gameOver })
       await client.invalidateQueries({ queryKey: queryKeys.me })
     },
   })
