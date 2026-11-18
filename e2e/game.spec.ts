@@ -1,6 +1,18 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 import { bandage, gameInfo, me, mockApi, sequence } from './support/fixtures'
+
+/**
+ * Панель содержимого комнаты.
+ *
+ * «Пусто.» пишут двое: панель комнаты и инвентарь. Искать этот текст по всей
+ * странице нельзя — локатор находит оба элемента и падает на strict mode.
+ */
+function roomItems(page: Page) {
+  return page
+    .locator('section')
+    .filter({ has: page.getByRole('heading', { name: 'в комнате' }) })
+}
 
 test('экран игры показывает комнату, экипировку и содержимое', async ({ page }) => {
   await mockApi(page, {
@@ -16,7 +28,7 @@ test('экран игры показывает комнату, экипиров�
   await expect(page.getByRole('heading', { name: /МАЛЕНЬКАЯ КОМНАТА/ })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'экипировка' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Идти дальше' })).toBeVisible()
-  await expect(page.getByText('Пусто.')).toBeVisible()
+  await expect(roomItems(page).getByText('Пусто.')).toBeVisible()
 })
 
 test('комната обыскивается сама, а «Взять» переносит предмет в инвентарь', async ({ page }) => {
@@ -36,5 +48,5 @@ test('комната обыскивается сама, а «Взять» пер
 
   // Предмет ушёл в инвентарь (появилось действие), а в комнате стало пусто.
   await expect(page.getByRole('button', { name: 'Использовать' })).toBeVisible()
-  await expect(page.getByText('Пусто.')).toBeVisible()
+  await expect(roomItems(page).getByText('Пусто.')).toBeVisible()
 })
