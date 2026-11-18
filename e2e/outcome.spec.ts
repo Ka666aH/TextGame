@@ -1,15 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-import {
-  chest,
-  exitRoom,
-  gameInfo,
-  gameOver,
-  me,
-  mockApi,
-  mockSequence,
-  smallRoom,
-} from './support/fixtures'
+import { chest, exitRoom, gameInfo, gameOver, me, mockApi, sequence, smallRoom } from './support/fixtures'
 
 /**
  * Мимик — единственная смерть, которая не меняет здоровье: сервер снимает
@@ -43,10 +34,10 @@ test('комната «ВЫХОД» ведёт на экран победы', as
 
   await mockApi(page, {
     'GET /auth/me': me,
+    // После перехода сервер отдаёт уже финальное состояние — комнату «ВЫХОД».
+    'GET /state': sequence([gameInfo(), gameInfo({ room: exitRoom })]),
     'POST /state/rooms': found,
   })
-  // После перехода сервер отдаёт уже финальное состояние — комнату «ВЫХОД».
-  await mockSequence(page, '**/api/state', [gameInfo(), gameInfo({ room: exitRoom })])
 
   await page.goto('/game')
   await page.getByRole('button', { name: 'Идти дальше' }).click()

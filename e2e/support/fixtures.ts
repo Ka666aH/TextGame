@@ -1,64 +1,115 @@
 import type { Page, Route } from '@playwright/test'
 
+export type MockHandler = (route: Route) => Promise<void> | void
+
+/** Тело ответа `200` — или функция, если ответ особый. */
+export type MockValue = unknown | MockHandler
+
+function isHandler(value: unknown): value is MockHandler {
+  return typeof value === 'function'
+}
+
 /**
- * Подмена сети для e2e: бэкенд не нужен, ответы задаются таблицей
- * `"МЕТОД /путь"` → тело JSON.
+ * Подмена сети для e2e: бэкенд не нужен.
  *
- * Всё, чего нет в таблице, отвечает `500` с кодом `NOT_MOCKED`: пропущенный
- * запрос виден сразу, а не тонет в таймауте непонятного элемента.
+ * Маршрут один, а совпадение проверяется предикатом по пути. Глоб
+ * `**\/api/**` на практике не сработал: запросы уходили в прокси, падали по
+ * сети, и тест падал пустой страницей вместо понятной причины.
  *
- * Маршруты проверяются в обратном порядке регистрации, поэтому особая логика
- * (`mockMeAnonymous`, `mockSequence`) вешается **после** этой функции и
- * перекрывает таблицу.
+ * Ключ таблицы — `"МЕТОД /путь"`. Значение — тело ответа `200` либо функция
+ * для особых случаев (401, меняющиеся ответы). Всё, чего нет в таблице,
+ * отвечает `500 NOT_MOCKED`: пропущенный запрос виден сразу.
  */
-export async function mockApi(page: Page, table: Record<string, unknown>): Promise<void> {
-  await page.route('**/api/**', async (route: Route) => {
-    const request = route.request()
-    const path = new URL(request.url()).pathname.replace(/^\/api/, '')
-    const key = `${request.method()} ${path}`
+export async function mockApi(page: Page, table: Record<string, MockValue>): Promise<void> {
+  logPageProblems(page)
 
-    if (!(key in table)) {
-      await route.fulfill({
-        status: 500,
-        json: { title: 'NOT_MOCKED', detail: `Нет заглушки для ${key}` },
-      })
-      return
-    }
+  await page.route(
+    (url) => url.pathname.startsWith('/api/'),
+    async (route) => {
+      const request = route.request()
+      const path = new URL(request.url()).pathname.replace(/^\/api/, '')
+      const key = `${request.method()} ${path}`
+      const value = table[key]
 
-    await route.fulfill({ status: 200, json: table[key] })
+      if (value === undefined) {
+        await route.fulfill({
+          status: 500,
+          json: { title: 'NOT_MOCKED', detail: `Нет заглушки для ${key}` },
+        })
+        return
+      }
+
+      if (isHandler(value)) {
+        await value(route)
+        return
+      }
+
+      await route.fulfill({ status: 200, json: value })
+    },
+  )
+}
+
+/**
+ * Диагностика на случай падения: без неё отказ выглядит как пустая страница,
+ * и причину приходится угадывать. Playwright показывает stdout у упавших
+ * тестов, так что в зелёном прогоне этих строк не видно.
+ */
+function logPageProblems(page: Page): void {
+  page.on('pageerror', (error) => {
+    console.log(`[pageerror] ${error.message}`)
+  })
+
+  page.on('request', (request) => {
+    if (!request.url().includes('/api/')) return
+    console.log(`[api →] ${request.method()} ${new URL(request.url()).pathname}`)
+  })
+
+  page.on('requestfailed', (request) => {
+    const reason = request.failure()?.errorText ?? 'без причины'
+    console.log(`[requestfailed] ${request.method()} ${request.url()} — ${reason}`)
+  })
+
+  page.on('response', (response) => {
+    if (!response.url().includes('/api/')) return
+    if (response.status() < 400) return
+
+    const path = new URL(response.url()).pathname
+    console.log(`[api ${response.status()}] ${response.request().method()} ${path}`)
   })
 }
 
 /** `/auth/me` всегда `401`: пользователь не вошёл. */
-export async function mockMeAnonymous(page: Page): Promise<void> {
-  await page.route('**/api/auth/me', (route) => route.fulfill({ status: 401, body: '' }))
+export function meAnonymous(): MockHandler {
+  return (route) => route.fulfill({ status: 401, body: '' })
 }
 
 /** `/auth/me`: первый вызов анонимный, дальше — вошедший пользователь. */
-export async function mockMeThenAuthenticated(page: Page, authenticated: unknown): Promise<void> {
+export function meSequence(authenticated: unknown): MockHandler {
   let calls = 0
-  await page.route('**/api/auth/me', async (route) => {
+
+  return async (route) => {
     calls += 1
     if (calls === 1) {
       await route.fulfill({ status: 401, body: '' })
       return
     }
     await route.fulfill({ status: 200, json: authenticated })
-  })
+  }
 }
 
 /**
- * Ответ меняется от вызова к вызову: первый — первый элемент, дальше
- * последний. Нужен там, где состояние сервера реально меняется: обыск
- * комнаты, перечитывание состояния на экране исхода.
+ * Ответ меняется от вызова к вызову: первый элемент, дальше последний.
+ * Нужен там, где состояние сервера действительно меняется: обыск комнаты,
+ * перечитывание состояния на экране исхода.
  */
-export async function mockSequence(page: Page, pattern: string, bodies: unknown[]): Promise<void> {
+export function sequence(bodies: unknown[]): MockHandler {
   let index = 0
-  await page.route(pattern, async (route) => {
+
+  return async (route) => {
     const body = bodies[Math.min(index, bodies.length - 1)]
     index += 1
     await route.fulfill({ status: 200, json: body })
-  })
+  }
 }
 
 export const me = {

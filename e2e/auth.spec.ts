@@ -1,10 +1,9 @@
 import { expect, test } from '@playwright/test'
 
-import { meWithoutSession, mockApi, mockMeAnonymous, mockMeThenAuthenticated } from './support/fixtures'
+import { meAnonymous, meSequence, meWithoutSession, mockApi } from './support/fixtures'
 
 test('без куки показывается экран входа', async ({ page }) => {
-  await mockApi(page, {})
-  await mockMeAnonymous(page)
+  await mockApi(page, { 'GET /auth/me': meAnonymous() })
 
   await page.goto('/')
 
@@ -15,11 +14,11 @@ test('без куки показывается экран входа', async ({ 
 
 test('вход ведёт к списку игр', async ({ page }) => {
   await mockApi(page, {
+    // Анкета спрашивается дважды: до входа и сразу после — чтобы узнать, есть ли игра.
+    'GET /auth/me': meSequence(meWithoutSession),
     'POST /auth/tokens': {},
     'GET /sessions': [],
   })
-  // Анкета спрашивается дважды: до входа и сразу после, чтобы узнать, есть ли игра.
-  await mockMeThenAuthenticated(page, meWithoutSession)
 
   await page.goto('/login')
   await page.getByLabel('Логин').fill('player')

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-import { bandage, gameInfo, me, mockApi, mockSequence } from './support/fixtures'
+import { bandage, gameInfo, me, mockApi, sequence } from './support/fixtures'
 
 test('экран игры показывает комнату и действия', async ({ page }) => {
   await mockApi(page, {
@@ -21,9 +21,9 @@ test('обыск показывает предмет, а «Взять» пере
     'GET /auth/me': me,
     'GET /state': gameInfo(),
     'POST /state/rooms/current/items/301/take': gameInfo({ inventory: [bandage] }),
+    // Обыск — это POST, и после «Взять» комната уже пуста.
+    'POST /state/rooms/current/items': sequence([[bandage], []]),
   })
-  // Обыск — это POST, и после «Взять» комната уже пуста.
-  await mockSequence(page, '**/api/state/rooms/current/items', [[bandage], []])
 
   await page.goto('/game')
   await page.getByRole('button', { name: 'Обыскать', exact: true }).click()

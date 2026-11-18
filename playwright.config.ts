@@ -2,14 +2,22 @@ import process from 'node:process'
 import { defineConfig, devices } from '@playwright/test'
 
 /**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
+ * По умолчанию поднимается только Chromium, и окно не открывается.
+ *
+ * Другие браузеры включаются явно — `ALL_BROWSERS=1 pnpm test:e2e`, и перед
+ * этим их надо поставить: `pnpm exec playwright install firefox webkit`.
+ * Видимое окно для отладки — `HEADED=1 pnpm test:e2e`.
  */
-// require('dotenv').config();
+const allBrowsers = process.env.ALL_BROWSERS === '1'
+const headed = process.env.HEADED === '1'
 
-/**
- * See https://playwright.dev/docs/test-configuration.
- */
+const extraBrowsers = allBrowsers
+  ? [
+      { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+      { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+    ]
+  : []
+
 export default defineConfig({
   testDir: './e2e',
   /* Maximum time one test can run for. */
@@ -39,62 +47,11 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
 
-    /* Only on CI systems run the tests headless */
-    headless: !!process.env.CI,
+    /* Локально тесты идут без окна: оно мешает и замедляет прогон. */
+    headless: !headed,
   },
 
-  /* Configure projects for major browsers */
-  projects: [
-    {
-      name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-      },
-    },
-    {
-      name: 'firefox',
-      use: {
-        ...devices['Desktop Firefox'],
-      },
-    },
-    {
-      name: 'webkit',
-      use: {
-        ...devices['Desktop Safari'],
-      },
-    },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: {
-    //     ...devices['Pixel 5'],
-    //   },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: {
-    //     ...devices['iPhone 12'],
-    //   },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: {
-    //     channel: 'msedge',
-    //   },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: {
-    //     channel: 'chrome',
-    //   },
-    // },
-  ],
-
-  /* Folder for test artifacts such as screenshots, videos, traces, etc. */
-  // outputDir: 'test-results/',
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }, ...extraBrowsers],
 
   /* Run your local dev server before starting the tests */
   webServer: {
