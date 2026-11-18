@@ -8,6 +8,8 @@ export const queryKeys = {
   saves: ['saves'] as const,
   state: ['state'] as const,
   map: ['map'] as const,
+  /** Последний полученный конец игры: сервер отдаёт его только в ответе на действие. */
+  gameOver: ['gameOver'] as const,
 
   /** Общий префикс предметов комнаты — для сброса всего списка сразу. */
   roomItemsAll: ['roomItems'] as const,

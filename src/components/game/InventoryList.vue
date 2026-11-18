@@ -14,7 +14,7 @@ defineProps<{ items: InventoryItem[] }>()
     <ul v-else class="space-y-2">
       <li v-for="(item, index) in items" :key="item.id ?? index">
         <ItemCard :item="item">
-          <template v-if="$slots.actions" #actions>
+          <template #actions>
             <slot name="actions" :item="item" :index="index" />
           </template>
         </ItemCard>

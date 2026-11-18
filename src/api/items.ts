@@ -162,3 +162,17 @@ export function kindLabel(item: InventoryItem): string {
 
   return KIND_LABELS[kind]
 }
+
+export type RoomItemAction = 'take' | 'buy' | 'none'
+
+/**
+ * Что можно сделать с предметом, лежащим в комнате.
+ *
+ * В магазине бесплатно брать нельзя — сервер ответит `403 CAN_NOT_STEAL`,
+ * поэтому «Взять» **заменяется** на «Купить», а не показывается рядом.
+ * Сундук — не переносимый предмет: у него свой цикл, действий пока нет.
+ */
+export function roomItemAction(item: InventoryItem, inShop: boolean): RoomItemAction {
+  if (isChestItem(item)) return 'none'
+  return inShop ? 'buy' : 'take'
+}

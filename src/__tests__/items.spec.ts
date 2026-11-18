@@ -9,6 +9,7 @@ import {
   itemId,
   kindLabel,
   plainRole,
+  roomItemAction,
   structuralKind,
   type ItemKind,
 } from '../api/items'
@@ -281,5 +282,26 @@ describe('kindLabel', () => {
 
   it('не падает на незнакомом предмете', () => {
     expect(kindLabel(makeItem({ id: 99, name: 'АРТЕФАКТ', cost: 1 }))).toBe('предмет')
+  })
+})
+
+describe('roomItemAction', () => {
+  it('в обычной комнате предмет можно взять', () => {
+    expect(roomItemAction(entry(ITEM_NAMES.key), false)).toBe('take')
+    expect(roomItemAction(entry(ITEM_NAMES.ironSword), false)).toBe('take')
+  })
+
+  it('в магазине брать нельзя, поэтому предлагается купить', () => {
+    expect(roomItemAction(entry(ITEM_NAMES.key), true)).toBe('buy')
+    expect(roomItemAction(entry(ITEM_NAMES.leatherVest), true)).toBe('buy')
+  })
+
+  it('сундук не переносимый: действия с ним отдельные', () => {
+    expect(roomItemAction(entry(ITEM_NAMES.chest), false)).toBe('none')
+    expect(roomItemAction(entry(ITEM_NAMES.chest), true)).toBe('none')
+  })
+
+  it('мёртвый мимик — всё ещё сундук', () => {
+    expect(roomItemAction(entry(ITEM_NAMES.deadMimic), false)).toBe('none')
   })
 })

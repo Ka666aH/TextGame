@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { itemNumber } from '../../api/items'
 import type { InventoryItem } from '../../api/types'
+import type { EquipmentSlot } from '../../api/game'
 import EntityArt from '../common/EntityArt.vue'
 
 defineProps<{
   weapon: InventoryItem
   helm: InventoryItem | null
   chestplate: InventoryItem | null
+  disabled: boolean
 }>()
+
+const emit = defineEmits<{ unequip: [slot: EquipmentSlot] }>()
 
 function describe(item: InventoryItem, key: 'damage' | 'damageBlock'): string {
   const value = itemNumber(item, key)
@@ -24,7 +28,14 @@ function describe(item: InventoryItem, key: 'damage' | 'damageBlock'): string {
         <EntityArt kind="item" :name="weapon.name" size="sm" />
         <span class="text-xs tracking-wide text-stone-500 uppercase">оружие</span>
         <span class="flex-1 truncate text-sm text-stone-100">{{ describe(weapon, 'damage') }}</span>
-        <slot name="weapon-actions" />
+        <button
+          type="button"
+          class="rounded border border-stone-700 px-2 py-1 text-xs text-stone-300 hover:border-stone-500 hover:text-white disabled:opacity-40"
+          :disabled="disabled"
+          @click="emit('unequip', 'weapon')"
+        >
+          Снять
+        </button>
       </div>
 
       <div class="flex items-center gap-2 rounded border border-stone-800 bg-stone-900/50 px-3 py-2">
@@ -33,7 +44,14 @@ function describe(item: InventoryItem, key: 'damage' | 'damageBlock'): string {
         <span class="flex-1 truncate text-sm" :class="helm ? 'text-stone-100' : 'text-stone-600'">
           {{ helm ? describe(helm, 'damageBlock') : 'не надет' }}
         </span>
-        <slot name="helm-actions" />
+        <button
+          type="button"
+          class="rounded border border-stone-700 px-2 py-1 text-xs text-stone-300 hover:border-stone-500 hover:text-white disabled:opacity-40"
+          :disabled="disabled || helm === null"
+          @click="emit('unequip', 'helm')"
+        >
+          Снять
+        </button>
       </div>
 
       <div class="flex items-center gap-2 rounded border border-stone-800 bg-stone-900/50 px-3 py-2">
@@ -45,7 +63,14 @@ function describe(item: InventoryItem, key: 'damage' | 'damageBlock'): string {
         >
           {{ chestplate ? describe(chestplate, 'damageBlock') : 'не надет' }}
         </span>
-        <slot name="chestplate-actions" />
+        <button
+          type="button"
+          class="rounded border border-stone-700 px-2 py-1 text-xs text-stone-300 hover:border-stone-500 hover:text-white disabled:opacity-40"
+          :disabled="disabled || chestplate === null"
+          @click="emit('unequip', 'chestplate')"
+        >
+          Снять
+        </button>
       </div>
     </div>
   </section>

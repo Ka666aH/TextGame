@@ -10,7 +10,7 @@ declare module 'vue-router' {
   }
 }
 
-// Заглушка для игровых экранов блока 4.
+// Заглушка только для корневого маршрута: охрана сразу уводит на нужный экран.
 const StubView = () => import('../views/StubView.vue')
 
 const routes: RouteRecordRaw[] = [
@@ -32,8 +32,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/game-over',
     name: 'gameOver',
-    component: StubView,
-    props: { title: 'Конец игры' },
+    component: () => import('../views/GameOverView.vue'),
     meta: { requiresSession: true },
   },
   { path: '/:pathMatch(.*)*', redirect: { name: 'root' } },
