@@ -64,9 +64,12 @@ const canWalkBack = computed(() => canGoBack(info.value?.room.number ?? 0))
  * В бою двигаться нельзя: сервер отвечает `403 IN_BATTLE` и на переход вперёд,
  * и на возврат. Кнопки держим выключенными, чтобы отказ не был штатным ответом
  * на обычное действие.
+ *
+ * Список предметов комнаты в бою скрыт по той же причине: обыск и «взять»
+ * сервер запрещает, а содержимое могло измениться — вместо сундука в комнате
+ * теперь мимик. После победы список перечитывается и возвращается на место.
  */
 const inBattle = computed(() => enemy.value !== null)
-
 /**
  * Признака «игра окончена» нет ни в одном DTO, поэтому исход выводим сами
  * (ADR 0004) и уходим на отдельный экран.
@@ -218,7 +221,12 @@ async function handleSell(item: InventoryItem): Promise<void> {
           @attack="handleAttack"
         />
 
-        <RoomItemsPanel :key="info.room.number" :room-number="info.room.number" :in-shop="isShop" />
+        <RoomItemsPanel
+          v-if="!inBattle"
+          :key="info.room.number"
+          :room-number="info.room.number"
+          :in-shop="isShop"
+        />
       </div>
 
       <div class="space-y-4">

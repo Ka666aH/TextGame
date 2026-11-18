@@ -79,6 +79,13 @@ function forgetRoomItems(roomNumber: number): void {
   queryClient.removeQueries({ queryKey: queryKeys.roomItems(roomNumber) })
 }
 
+/**
+ * Бой начат ударом по сундуку. Если мимик погиб, сундук возвращается в комнату
+ * уже мёртвым и отпертым — и список комнаты надо перечитать, иначе на экране
+ * останется прежний запертый сундук, который просит ключ.
+ */
+let mimicBattle = false
+
 export function useTakeRoomItemMutation() {
   return useMutation({
     mutationFn: takeRoomItem,
@@ -157,6 +164,7 @@ export function useUnequipItemMutation() {
  * должен показывать уже найденный лут, а не пустую комнату.
  */
 async function afterRoomChange(): Promise<void> {
+  mimicBattle = false
   await Promise.all([
     queryClient.invalidateQueries({ queryKey: queryKeys.state }),
     queryClient.invalidateQueries({ queryKey: queryKeys.map }),
@@ -197,6 +205,7 @@ export function useAttackMutation() {
     mutationFn: attackEnemy,
     onSuccess: async (result) => {
       if (isGameOver(result)) {
+        mimicBattle = false
         rememberGameOver(result)
         return
       }
@@ -210,6 +219,11 @@ export function useAttackMutation() {
       // В ответе нет состояния вообще: прочность могла сломаться, а `BattleWin`
       // не содержит `gameInfo` — перечитывание обязательно.
       await queryClient.invalidateQueries({ queryKey: queryKeys.state })
+
+      if (isBattleWin(result) && mimicBattle) {
+        mimicBattle = false
+        await refreshCurrentRoomItems()
+      }
     },
   })
 }
@@ -228,14 +242,29 @@ export function chestItemsQueryOptions(chestId: number) {
   }
 }
 
-function forgetChestItems(chestId: number): void {
-  queryClient.removeQueries({ queryKey: queryKeys.chestItems(chestId) })
+/** Номер текущей комнаты известен только из кэша состояния. */
+function currentRoomNumber(): number | null {
+  const info = queryClient.getQueryData<GameInfo>(queryKeys.state)
+  return info?.room.number ?? null
 }
 
-/** Номер текущей комнаты известен только из кэша состояния. */
-function forgetCurrentRoomItems(): void {
-  const info = queryClient.getQueryData<GameInfo>(queryKeys.state)
-  if (info !== undefined) forgetRoomItems(info.room.number)
+/**
+ * Перечитывает список предметов текущей комнаты после боя: мимик возвращается
+ * в неё мёртвым, а комната после этого выглядит иначе. Обыск — это POST под
+ * `RequireNotInBattle`, поэтому звать его можно только когда бой окончен.
+ * Ошибку глотаем: это фоновое обновление, а не действие игрока, и в худшем
+ * случае список просто останется прежним.
+ */
+async function refreshCurrentRoomItems(): Promise<void> {
+  const roomNumber = currentRoomNumber()
+  if (roomNumber === null) return
+
+  try {
+    const items = await searchRoom()
+    queryClient.setQueryData(queryKeys.roomItems(roomNumber), items)
+  } catch {
+    // Список останется прежним до следующего обыска.
+  }
 }
 
 /** Лут приходит прямо в ответе: обыск после открытия не нужен. */
@@ -263,15 +292,15 @@ export function useUnlockChestMutation() {
 }
 
 /**
- * Удар по сундуку. Обычный сундук остаётся в комнате и в её списке, а мимик
- * уходит в бой, и после смерти возвращается мёртвым: тогда и комната, и лут
- * этого сундука уже не соответствуют серверу.
+ * Удар по сундуку. Обычный сундук остаётся в комнате, мимик уходит в бой,
+ * а если он погиб от первого удара — возвращается в комнату мёртвым.
  */
 export function useHitChestMutation() {
   return useMutation({
     mutationFn: hitChest,
-    onSuccess: async (result, chestId) => {
+    onSuccess: async (result) => {
       if (isGameOver(result)) {
+        mimicBattle = false
         rememberGameOver(result)
         return
       }
@@ -282,12 +311,16 @@ export function useHitChestMutation() {
       // Состояния в ответе нет: хиты и прочность оружия могли измениться.
       await queryClient.invalidateQueries({ queryKey: queryKeys.state })
 
-      if (isBattleWin(result) || !isPlainChestHit(log)) {
-        forgetChestItems(chestId)
-        // Обыск комнаты — POST под `RequireNotInBattle`, в бою его не позвать,
-        // поэтому список просто забываем: игрок обыщет комнату после победы.
-        forgetCurrentRoomItems()
+      if (isBattleWin(result)) {
+        // Мимик умер сразу: сундук уже вернулся в комнату мёртвым и открытым.
+        await refreshCurrentRoomItems()
+        return
       }
+
+      // Обычный сундук никуда не делся, а вот мимик ушёл в бой. Список комнаты
+      // сейчас не перечитать: обыск запрещён, пока бой идёт. Запоминаем, чтобы
+      // обновить его после победы.
+      if (!isPlainChestHit(log)) mimicBattle = true
     },
   })
 }
