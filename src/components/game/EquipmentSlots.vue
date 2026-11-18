@@ -24,7 +24,9 @@ function describe(item: InventoryItem, key: 'damage' | 'damageBlock'): string {
     <h2 class="mb-2 text-xs tracking-wide text-stone-500 uppercase">экипировка</h2>
 
     <div class="space-y-2">
-      <div class="flex items-center gap-2 rounded border border-stone-800 bg-stone-900/50 px-3 py-2">
+      <div
+        class="flex items-center gap-2 rounded border border-stone-800 bg-stone-900/50 px-3 py-2"
+      >
         <EntityArt kind="item" :name="weapon.name" size="sm" />
         <span class="text-xs tracking-wide text-stone-500 uppercase">оружие</span>
         <span class="flex-1 truncate text-sm text-stone-100">{{ describe(weapon, 'damage') }}</span>
@@ -38,7 +40,9 @@ function describe(item: InventoryItem, key: 'damage' | 'damageBlock'): string {
         </button>
       </div>
 
-      <div class="flex items-center gap-2 rounded border border-stone-800 bg-stone-900/50 px-3 py-2">
+      <div
+        class="flex items-center gap-2 rounded border border-stone-800 bg-stone-900/50 px-3 py-2"
+      >
         <EntityArt kind="item" :name="helm?.name ?? ''" size="sm" />
         <span class="text-xs tracking-wide text-stone-500 uppercase">шлем</span>
         <span class="flex-1 truncate text-sm" :class="helm ? 'text-stone-100' : 'text-stone-600'">
@@ -54,7 +58,9 @@ function describe(item: InventoryItem, key: 'damage' | 'damageBlock'): string {
         </button>
       </div>
 
-      <div class="flex items-center gap-2 rounded border border-stone-800 bg-stone-900/50 px-3 py-2">
+      <div
+        class="flex items-center gap-2 rounded border border-stone-800 bg-stone-900/50 px-3 py-2"
+      >
         <EntityArt kind="item" :name="chestplate?.name ?? ''" size="sm" />
         <span class="text-xs tracking-wide text-stone-500 uppercase">нагрудник</span>
         <span

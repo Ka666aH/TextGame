@@ -124,9 +124,7 @@ async function submit(): Promise<void> {
         <p v-if="formErrors.password" class="mt-1 text-xs text-red-400">
           {{ formErrors.password }}
         </p>
-        <p v-else class="mt-1 text-xs text-stone-500">
-          Нужна заглавная латинская буква и цифра.
-        </p>
+        <p v-else class="mt-1 text-xs text-stone-500">Нужна заглавная латинская буква и цифра.</p>
       </div>
 
       <p v-if="serverError" class="text-sm text-red-400" role="alert">{{ serverError }}</p>

@@ -135,7 +135,9 @@ async function handleDelete(session: Session): Promise<void> {
       </label>
 
       <label class="flex flex-col gap-1 text-sm">
-        <span class="text-stone-300"> Seed <span class="text-stone-500">(необязательно)</span> </span>
+        <span class="text-stone-300">
+          Seed <span class="text-stone-500">(необязательно)</span>
+        </span>
         <input
           v-model="form.seed"
           type="text"

@@ -25,8 +25,12 @@ const emit = defineEmits<{ attack: [] }>()
           <span>
             здоровье <span class="font-mono text-stone-100">{{ enemy.health }}</span>
           </span>
-          <span> урон <span class="font-mono text-stone-100">{{ enemy.damage }}</span> </span>
-          <span> блок <span class="font-mono text-stone-100">{{ enemy.damageBlock }}</span> </span>
+          <span>
+            урон <span class="font-mono text-stone-100">{{ enemy.damage }}</span>
+          </span>
+          <span>
+            блок <span class="font-mono text-stone-100">{{ enemy.damageBlock }}</span>
+          </span>
         </p>
       </div>
     </div>

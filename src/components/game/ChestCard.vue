@@ -207,8 +207,8 @@ async function takeAll(): Promise<void> {
     </div>
 
     <p v-if="!hasLoot" class="mt-2 text-xs text-stone-500">
-      Мимик выглядит как сундук. Удар начнёт бой, если он живой, и только
-      попортит оружие, если сундук обычный.
+      Мимик выглядит как сундук. Удар начнёт бой, если он живой, и только попортит оружие, если
+      сундук обычный.
     </p>
 
     <p v-if="deadMimic && !hasLoot" class="mt-1 text-xs text-stone-500">

@@ -61,9 +61,7 @@ export function toApiError(status: number, body: unknown): ApiError {
 
   const rawTitle = record ? record['title'] : undefined
   const code =
-    typeof rawTitle === 'string' && rawTitle.length > 0
-      ? rawTitle
-      : `${HTTP_CODE_PREFIX}${status}`
+    typeof rawTitle === 'string' && rawTitle.length > 0 ? rawTitle : `${HTTP_CODE_PREFIX}${status}`
 
   const rawDetail = record ? record['detail'] : undefined
   const detail = typeof rawDetail === 'string' && rawDetail.length > 0 ? rawDetail : undefined

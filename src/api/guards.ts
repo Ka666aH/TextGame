@@ -60,11 +60,7 @@ export function isRoom(value: unknown): value is Room {
 
 export function isChestDto(value: unknown): boolean {
   return (
-    isRecord(value) &&
-    'id' in value &&
-    'name' in value &&
-    'isClosed' in value &&
-    !('cost' in value)
+    isRecord(value) && 'id' in value && 'name' in value && 'isClosed' in value && !('cost' in value)
   )
 }
 

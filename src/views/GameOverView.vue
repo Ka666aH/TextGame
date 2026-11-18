@@ -91,9 +91,7 @@ async function goTo(name: 'sessions' | 'saves'): Promise<void> {
       </div>
       <div class="rounded border border-stone-800 bg-stone-900/60 px-4 py-3">
         <p class="text-xs tracking-wide text-stone-500 uppercase">здоровье</p>
-        <p class="mt-1 font-mono text-stone-100">
-          {{ info.currentHealth }}/{{ info.maxHealth }}
-        </p>
+        <p class="mt-1 font-mono text-stone-100">{{ info.currentHealth }}/{{ info.maxHealth }}</p>
       </div>
       <div class="rounded border border-stone-800 bg-stone-900/60 px-4 py-3">
         <p class="text-xs tracking-wide text-stone-500 uppercase">монеты</p>

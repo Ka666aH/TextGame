@@ -55,17 +55,35 @@ const catalog: CatalogEntry[] = [
   },
   {
     name: ITEM_NAMES.bandage,
-    item: makeItem({ id: 7, name: ITEM_NAMES.bandage, cost: 5, maxHealthBoost: 5, currentHealthBoost: 5 }),
+    item: makeItem({
+      id: 7,
+      name: ITEM_NAMES.bandage,
+      cost: 5,
+      maxHealthBoost: 5,
+      currentHealthBoost: 5,
+    }),
     kind: 'heal',
   },
   {
     name: ITEM_NAMES.powerPotion,
-    item: makeItem({ id: 8, name: ITEM_NAMES.powerPotion, cost: 5, maxHealthBoost: 10, currentHealthBoost: 3 }),
+    item: makeItem({
+      id: 8,
+      name: ITEM_NAMES.powerPotion,
+      cost: 5,
+      maxHealthBoost: 10,
+      currentHealthBoost: 3,
+    }),
     kind: 'heal',
   },
   {
     name: ITEM_NAMES.regenPotion,
-    item: makeItem({ id: 9, name: ITEM_NAMES.regenPotion, cost: 5, maxHealthBoost: 0, currentHealthBoost: 8 }),
+    item: makeItem({
+      id: 9,
+      name: ITEM_NAMES.regenPotion,
+      cost: 5,
+      maxHealthBoost: 0,
+      currentHealthBoost: 8,
+    }),
     kind: 'heal',
   },
   {
@@ -105,12 +123,24 @@ const catalog: CatalogEntry[] = [
   },
   {
     name: ITEM_NAMES.woodenBucket,
-    item: makeItem({ id: 16, name: ITEM_NAMES.woodenBucket, cost: 3, durability: 3, damageBlock: 1 }),
+    item: makeItem({
+      id: 16,
+      name: ITEM_NAMES.woodenBucket,
+      cost: 3,
+      durability: 3,
+      damageBlock: 1,
+    }),
     kind: 'armor',
   },
   {
     name: ITEM_NAMES.leatherHelm,
-    item: makeItem({ id: 17, name: ITEM_NAMES.leatherHelm, cost: 10, durability: 6, damageBlock: 2 }),
+    item: makeItem({
+      id: 17,
+      name: ITEM_NAMES.leatherHelm,
+      cost: 10,
+      durability: 6,
+      damageBlock: 2,
+    }),
     kind: 'armor',
   },
   {
@@ -120,12 +150,24 @@ const catalog: CatalogEntry[] = [
   },
   {
     name: ITEM_NAMES.leatherVest,
-    item: makeItem({ id: 19, name: ITEM_NAMES.leatherVest, cost: 15, durability: 8, damageBlock: 3 }),
+    item: makeItem({
+      id: 19,
+      name: ITEM_NAMES.leatherVest,
+      cost: 15,
+      durability: 8,
+      damageBlock: 3,
+    }),
     kind: 'armor',
   },
   {
     name: ITEM_NAMES.ironCuirass,
-    item: makeItem({ id: 20, name: ITEM_NAMES.ironCuirass, cost: 35, durability: 12, damageBlock: 6 }),
+    item: makeItem({
+      id: 20,
+      name: ITEM_NAMES.ironCuirass,
+      cost: 35,
+      durability: 12,
+      damageBlock: 6,
+    }),
     kind: 'armor',
   },
 ]

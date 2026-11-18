@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
+    "check": "vue-tsc --build && oxlint . --fix && eslint . --fix --cache && prettier --write --experimental-cli src/ && vitest run && playwright test",
+    "test": "vitest run && playwright test",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "build-only": "vite build",

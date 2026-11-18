@@ -12,12 +12,7 @@ import { ROOM_NAMES } from '../api/labels'
 import { outcomeOf } from '../api/outcome'
 import type { Enemy, InventoryItem } from '../api/types'
 import { canGoBack } from '../lib/navigation'
-import {
-  clearBattleLog,
-  runGameAction,
-  useBattleLog,
-  useGameBusy,
-} from '../composables/game'
+import { clearBattleLog, runGameAction, useBattleLog, useGameBusy } from '../composables/game'
 import BattlePanel from '../components/game/BattlePanel.vue'
 import DungeonMap from '../components/game/DungeonMap.vue'
 import EquipmentSlots from '../components/game/EquipmentSlots.vue'
@@ -143,10 +138,7 @@ async function goTo(name: 'sessions' | 'saves'): Promise<void> {
 }
 
 async function handleAttack(): Promise<void> {
-  const result = await runGameAction(
-    () => attackMutation.mutateAsync(),
-    'Не удалось ударить.',
-  )
+  const result = await runGameAction(() => attackMutation.mutateAsync(), 'Не удалось ударить.')
   if (!result.ok) return
 
   if (isGameOver(result.data)) {
