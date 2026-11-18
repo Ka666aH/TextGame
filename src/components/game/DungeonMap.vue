@@ -11,7 +11,7 @@ import { runGameAction, useGameBusy } from '../../composables/game'
 import { useGoToRoomMutation } from '../../queries/game'
 import { queryKeys } from '../../queries/keys'
 
-const props = defineProps<{ open: boolean; currentNumber: number }>()
+const props = defineProps<{ open: boolean; currentNumber: number; inBattle: boolean }>()
 const emit = defineEmits<{ 'update:open': [value: boolean] }>()
 
 const router = useRouter()
@@ -39,7 +39,10 @@ function close(): void {
 }
 
 async function travel(room: MapRoom): Promise<void> {
-  if (room.number === props.currentNumber) return
+  // В бою сервер отвечает `403 IN_BATTLE`: и `POST /state/rooms`, и `PUT
+  // /state/rooms/current` закрыты, пока жив враг. Смотреть карту при этом
+  // можно, поэтому недоступны только сами переходы.
+  if (room.number === props.currentNumber || props.inBattle) return
 
   // Неоткрытая комната вернёт `403 UNDISCOVERED_ROOM_ERROR`: карта показывает
   // и такие, но пометить их нечем — сервер флага не передаёт.
@@ -78,7 +81,7 @@ async function travel(room: MapRoom): Promise<void> {
           <button
             type="button"
             class="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-sm hover:bg-stone-800 disabled:opacity-60"
-            :disabled="busy || room.number === currentNumber"
+            :disabled="busy || inBattle || room.number === currentNumber"
             @click="travel(room)"
           >
             <span class="w-8 shrink-0 font-mono text-xs text-stone-500">{{ room.number }}</span>
@@ -95,9 +98,13 @@ async function travel(room: MapRoom): Promise<void> {
         </li>
       </ul>
 
+      <p v-if="inBattle" class="mt-3 text-xs text-amber-300">
+        Идёт бой: перейти в другую комнату нельзя, пока враг жив.
+      </p>
+
       <p class="mt-3 text-xs text-stone-500">
         Карта показывает и неоткрытые комнаты без пометок — сервер этого не сообщает. Переход в
-        такую комнату вернёт отказ.
+        такую комнату вернёт отказ. Стартовый зал тоже недоступен: сервер не помечает его открытым.
       </p>
     </div>
   </div>

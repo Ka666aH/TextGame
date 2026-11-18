@@ -9,6 +9,7 @@ import { canEquip, canSell, canUse, hasMap, itemId } from '../api/items'
 import { ROOM_NAMES } from '../api/labels'
 import { outcomeOf } from '../api/outcome'
 import type { Enemy, InventoryItem } from '../api/types'
+import { canGoBack } from '../lib/navigation'
 import {
   clearBattleLog,
   runGameAction,
@@ -26,6 +27,7 @@ import {
   useAttackMutation,
   useEquipItemMutation,
   useGoNextRoomMutation,
+  useGoToRoomMutation,
   useSellItemMutation,
   useStateQuery,
   useUnequipItemMutation,
@@ -45,6 +47,7 @@ const equipMutation = useEquipItemMutation()
 const unequipMutation = useUnequipItemMutation()
 const sellMutation = useSellItemMutation()
 const nextRoomMutation = useGoNextRoomMutation()
+const goToRoomMutation = useGoToRoomMutation()
 const attackMutation = useAttackMutation()
 
 const mapOpen = ref(false)
@@ -53,6 +56,16 @@ const mapOpen = ref(false)
 const isShop = computed(() => info.value?.room.name === ROOM_NAMES.shop)
 const mapAvailable = computed(() => hasMap(info.value?.inventory ?? []))
 const enemy = computed<Enemy | null>(() => info.value?.room.enemy ?? null)
+
+// Возврат не требует карты: она нужна только для списка комнат (GET /state/map).
+const canWalkBack = computed(() => canGoBack(info.value?.room.number ?? 0))
+
+/**
+ * В бою двигаться нельзя: сервер отвечает `403 IN_BATTLE` и на переход вперёд,
+ * и на возврат. Кнопки держим выключенными, чтобы отказ не был штатным ответом
+ * на обычное действие.
+ */
+const inBattle = computed(() => enemy.value !== null)
 
 /**
  * Признака «игра окончена» нет ни в одном DTO, поэтому исход выводим сами
@@ -101,6 +114,18 @@ async function handleNextRoom(): Promise<void> {
   const result = await runGameAction(
     () => nextRoomMutation.mutateAsync(),
     'Не удалось перейти в комнату.',
+  )
+  if (result.ok && isGameOver(result.data)) await leaveToGameOver()
+}
+
+/** Возврат в предыдущую комнату. Дальше назад — ещё раз, без карты. */
+async function handleGoBack(): Promise<void> {
+  const current = info.value
+  if (current === undefined) return
+
+  const result = await runGameAction(
+    () => goToRoomMutation.mutateAsync(current.room.number - 1),
+    'Не удалось вернуться в комнату.',
   )
   if (result.ok && isGameOver(result.data)) await leaveToGameOver()
 }
@@ -155,9 +180,19 @@ async function handleSell(item: InventoryItem): Promise<void> {
         <RoomPanel :room="info.room">
           <template #actions>
             <button
+              v-if="canWalkBack"
+              type="button"
+              class="rounded border border-stone-700 px-4 py-2 text-sm text-stone-200 hover:border-stone-500 hover:text-white disabled:opacity-40"
+              :disabled="busy || inBattle"
+              @click="handleGoBack"
+            >
+              ← Назад
+            </button>
+
+            <button
               type="button"
               class="rounded bg-stone-200 px-4 py-2 text-sm font-medium text-stone-900 hover:bg-white disabled:opacity-40"
-              :disabled="busy"
+              :disabled="busy || inBattle"
               @click="handleNextRoom"
             >
               Идти дальше
@@ -231,6 +266,6 @@ async function handleSell(item: InventoryItem): Promise<void> {
       </div>
     </div>
 
-    <DungeonMap v-model:open="mapOpen" :current-number="info.room.number" />
+    <DungeonMap v-model:open="mapOpen" :current-number="info.room.number" :in-battle="inBattle" />
   </div>
 </template>
