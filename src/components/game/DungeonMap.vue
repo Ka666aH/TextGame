@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { isApiError, messageForError } from '../../api/errors'
@@ -38,6 +38,68 @@ function close(): void {
   emit('update:open', false)
 }
 
+/**
+ * Модалка должна быть управляемой с клавиатуры: `Esc` закрывает, фокус
+ * уходит внутрь при открытии и возвращается на кнопку, которая её открыла,
+ * а `Tab` не выходит за пределы диалога.
+ */
+const dialog = ref<HTMLElement | null>(null)
+const closeButton = ref<HTMLButtonElement | null>(null)
+let previouslyFocused: HTMLElement | null = null
+
+function focusableItems(): HTMLElement[] {
+  if (dialog.value === null) return []
+  return [...dialog.value.querySelectorAll<HTMLElement>('button:not(:disabled)')]
+}
+
+function onKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    close()
+    return
+  }
+  if (event.key !== 'Tab') return
+
+  const items = focusableItems()
+  const first = items[0]
+  const last = items[items.length - 1]
+  if (first === undefined || last === undefined) return
+
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+    return
+  }
+  if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
+
+watch(
+  () => props.open,
+  async (open) => {
+    if (!open) {
+      window.removeEventListener('keydown', onKeydown)
+      previouslyFocused?.focus()
+      previouslyFocused = null
+      return
+    }
+
+    const active = document.activeElement
+    previouslyFocused = active instanceof HTMLElement ? active : null
+    window.addEventListener('keydown', onKeydown)
+
+    await nextTick()
+    closeButton.value?.focus()
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
+})
+
 async function travel(room: MapRoom): Promise<void> {
   // В бою сервер отвечает `403 IN_BATTLE`: и `POST /state/rooms`, и `PUT
   // /state/rooms/current` закрыты, пока жив враг. Смотреть карту при этом
@@ -63,10 +125,21 @@ async function travel(room: MapRoom): Promise<void> {
     class="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-black/70 p-4"
     @click.self="close"
   >
-    <div class="mt-12 w-full max-w-md rounded border border-stone-700 bg-stone-900 p-4">
+    <div
+      ref="dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="map-title"
+      class="mt-12 w-full max-w-md rounded border border-stone-700 bg-stone-900 p-4"
+    >
       <div class="flex items-center justify-between gap-2">
-        <h2 class="text-lg font-semibold">Карта</h2>
-        <button type="button" class="text-xs text-stone-400 hover:text-white" @click="close">
+        <h2 id="map-title" class="text-lg font-semibold">Карта</h2>
+        <button
+          ref="closeButton"
+          type="button"
+          class="text-xs text-stone-400 hover:text-white"
+          @click="close"
+        >
           закрыть
         </button>
       </div>

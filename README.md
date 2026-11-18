@@ -1,73 +1,64 @@
-# text-game
+# TextGame — фронтенд
 
-This template should help get you started developing with Vue 3 in Vite.
+SPA для текстовой roguelike-игры. Бэкенд — [Ka666aH/TextGameAPI](https://github.com/Ka666aH/TextGameAPI): всё состояние партии живёт на сервере, авторизация на httpOnly-куках, токены из браузера недоступны.
 
-## Recommended IDE Setup
+Экраны: вход и регистрация, список игр, экран игры (комната, карта, предметы, экипировка, сундуки, бой, магазин), сохранения, экран исхода.
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## Стек
 
-## Recommended Browser Setup
+Vue 3 + TypeScript (SFC, `<script setup>`), Vite, Vue Router, TanStack Query для серверного состояния, Pinia только для UI (тосты и подтверждения), Tailwind CSS 4, Vitest и Playwright.
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+## Быстрый старт
 
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+Нужен поднятый бэкенд: `docker compose up` в его репозитории, дальше `http://localhost:5000`.
 
 ```sh
 pnpm install
+pnpm dev        # http://localhost:5173
 ```
 
-### Compile and Hot-Reload for Development
+Все запросы идут на относительный `/api`, Vite проксирует их на `:5000`. Так фронтенд и бэкенд остаются на одном origin — CORS на бэкенде нет, и отпечаток куки привязан к origin.
 
-```sh
-pnpm dev
+## Команды
+
+| Команда | Что делает |
+|---|---|
+| `pnpm dev` | дев-сервер с прокси на бэкенд |
+| `pnpm build` | `type-check` + сборка в `dist/` |
+| `pnpm type-check` | `vue-tsc` |
+| `pnpm lint` | oxlint и eslint с автоисправлениями |
+| `pnpm format` | prettier по `src/` |
+| `pnpm test:unit` | Vitest: гарды, вид предмета, исход, формат, валидация, API-обвязка |
+| `pnpm test:e2e` | Playwright на подменённой сети, бэкенд не нужен |
+
+Для e2e один раз нужен браузер: `pnpm exec playwright install chromium`. По умолчанию идёт только Chromium и без окна; `HEADED=1 pnpm test:e2e` откроет окно, `ALL_BROWSERS=1 pnpm test:e2e` добавит Firefox и WebKit (их надо поставить тем же `playwright install`).
+
+## Устройство
+
+```
+src/
+  api/         DTO в том виде, как их отдаёт сервер; HTTP-клиент; коды ошибок;
+               гарды четырёх форм ответа 200; вид предмета; исход партии
+  queries/     TanStack Query: ключи кэша, запросы, мутации и правила обновления
+  composables/ блокировка действий на время запроса, клиентский журнал боя
+  components/  common — шапка, тосты, подтверждение, арт; game — панели игры
+  views/       экраны: вход, сессии, сохранения, игра, исход
+  lib/         чистые функции: форматирование, валидация, строки боя, навигация
+e2e/           сценарии Playwright и заглушки сети
+deploy/        конфиг nginx для выкладки
 ```
 
-### Type-Check, Compile and Minify for Production
+Серверное состояние не дублируется в Pinia: единственный источник правды — кэш TanStack Query, а Pinia держит то, что живёт только в браузере.
 
-```sh
-pnpm build
-```
+## Что стоит знать о бэкенде
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+- `200` бывает четырёх форм: `GameInfo`, `GameOver`, `BattleWin` и массив логов боя. Различаются гардами, а не истинностью полей.
+- Победа и поражение приходят одинаковым телом `{message, gameInfo}`; исход выводится эвристикой по комнате «ВЫХОД» и здоровью. Ответ на действие важнее любых эвристик (см. `src/api/outcome.ts`).
+- `401` — разлогин (кроме формы входа), `403` — отказ игрового действия.
+- Предметы полиморфны и без дискриминатора: вид выводится по набору полей и, где поля бессильны, по точному имени.
 
-```sh
-pnpm test:unit
-```
+Подробный контракт и подводные камни — в локальных заметках `notes/AGENTS.md` (в git не попадают намеренно), журнал работ — `notes/progress.md`.
 
-### Run End-to-End Tests with [Playwright](https://playwright.dev)
+## Деплой
 
-```sh
-# Install browsers for the first run
-npx playwright install
-
-# When testing on CI, must build the project first
-pnpm build
-
-# Runs the end-to-end tests
-pnpm test:e2e
-# Runs the tests only on Chromium
-pnpm test:e2e --project=chromium
-# Runs the tests of a specific file
-pnpm test:e2e tests/example.spec.ts
-# Runs the tests in debug mode
-pnpm test:e2e --debug
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-pnpm lint
-```
+`pnpm build`, затем статика `dist/` за nginx на том же домене, что API. Готовый серверный блок — [deploy/nginx.conf](deploy/nginx.conf), пояснения и чек-лист проверки — в `notes/deploy.md`.
