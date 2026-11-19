@@ -2,9 +2,10 @@
 import { useQuery } from '@tanstack/vue-query'
 import { computed, onMounted, watch } from 'vue'
 
-import { isChestItem, itemId, itemNumber, roomItemAction } from '../../api/items'
+import { isChestItem, itemId, roomItemAction } from '../../api/items'
 import type { InventoryItem } from '../../api/types'
 import { reportGameError, runGameAction, useGameBusy } from '../../composables/game'
+import { priceSuffix } from '../../lib/itemText'
 import { canSearchRoom } from '../../lib/rooms'
 import {
   roomItemsQueryOptions,
@@ -33,11 +34,6 @@ const failed = computed(() => roomItems.error.value !== null)
 
 // Стартовая и пустая комнаты заведомо без предметов: блока в них нет вовсе.
 const searchable = computed(() => canSearchRoom(props.roomName))
-
-function priceOf(item: InventoryItem): string {
-  const cost = itemNumber(item, 'cost')
-  return cost === null ? '' : ` · ${cost}`
-}
 
 async function search(): Promise<void> {
   if (busy.value) return
@@ -159,7 +155,7 @@ async function buy(item: InventoryItem): Promise<void> {
               :disabled="busy"
               @click="buy(item)"
             >
-              Купить{{ priceOf(item) }}
+              Купить{{ priceSuffix(item) }}
             </button>
           </template>
         </ItemCard>

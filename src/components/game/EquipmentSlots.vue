@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { itemNumber } from '../../api/items'
 import type { EquipmentSlot } from '../../api/game'
 import type { InventoryItem } from '../../api/types'
+import { describeStats } from '../../lib/itemText'
 import EntityArt from '../common/EntityArt.vue'
 
 defineProps<{
@@ -13,14 +13,15 @@ defineProps<{
 
 const emit = defineEmits<{ unequip: [slot: EquipmentSlot] }>()
 
-function valueOf(item: InventoryItem, key: 'damage' | 'damageBlock'): number | null {
-  return itemNumber(item, key)
+function statsOf(item: InventoryItem): string {
+  return describeStats(item).join(' · ')
 }
 </script>
 
 <!--
-  Слот — две строки: подпись и название с характеристикой. Одной строкой
-  длинные названия обрезались до многоточия, и характеристика пропадала.
+  Слот — три строки: подпись, название, характеристики. Одной строкой длинные
+  названия обрезались до многоточия, и характеристика пропадала; набор
+  характеристик тот же, что в инвентаре (`describeStats`).
 -->
 <template>
   <section class="rounded border border-stone-800 bg-stone-900/40 p-3">
@@ -32,15 +33,8 @@ function valueOf(item: InventoryItem, key: 'damage' | 'damageBlock'): number | n
 
         <div class="min-w-0 flex-1">
           <p class="text-[11px] tracking-wide text-stone-500 uppercase">оружие</p>
-          <p class="text-sm break-words text-stone-100">
-            {{ weapon.name }}
-            <span
-              v-if="valueOf(weapon, 'damage') !== null"
-              class="font-mono text-xs text-stone-400"
-            >
-              +{{ valueOf(weapon, 'damage') }}
-            </span>
-          </p>
+          <p class="text-sm break-words text-stone-100">{{ weapon.name }}</p>
+          <p v-if="statsOf(weapon)" class="text-xs text-stone-500">{{ statsOf(weapon) }}</p>
         </div>
 
         <button
@@ -59,17 +53,9 @@ function valueOf(item: InventoryItem, key: 'damage' | 'damageBlock'): number | n
         <div class="min-w-0 flex-1">
           <p class="text-[11px] tracking-wide text-stone-500 uppercase">шлем</p>
           <p class="text-sm break-words" :class="helm ? 'text-stone-100' : 'text-stone-600'">
-            <template v-if="helm">
-              {{ helm.name }}
-              <span
-                v-if="valueOf(helm, 'damageBlock') !== null"
-                class="font-mono text-xs text-stone-400"
-              >
-                +{{ valueOf(helm, 'damageBlock') }}
-              </span>
-            </template>
-            <template v-else>не надет</template>
+            {{ helm?.name ?? 'не надет' }}
           </p>
+          <p v-if="helm && statsOf(helm)" class="text-xs text-stone-500">{{ statsOf(helm) }}</p>
         </div>
 
         <button
@@ -88,16 +74,10 @@ function valueOf(item: InventoryItem, key: 'damage' | 'damageBlock'): number | n
         <div class="min-w-0 flex-1">
           <p class="text-[11px] tracking-wide text-stone-500 uppercase">нагрудник</p>
           <p class="text-sm break-words" :class="chestplate ? 'text-stone-100' : 'text-stone-600'">
-            <template v-if="chestplate">
-              {{ chestplate.name }}
-              <span
-                v-if="valueOf(chestplate, 'damageBlock') !== null"
-                class="font-mono text-xs text-stone-400"
-              >
-                +{{ valueOf(chestplate, 'damageBlock') }}
-              </span>
-            </template>
-            <template v-else>не надет</template>
+            {{ chestplate?.name ?? 'не надет' }}
+          </p>
+          <p v-if="chestplate && statsOf(chestplate)" class="text-xs text-stone-500">
+            {{ statsOf(chestplate) }}
           </p>
         </div>
 

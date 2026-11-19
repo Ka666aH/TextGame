@@ -11,6 +11,7 @@ import { canEquip, canSell, canUse, hasMap, itemId } from '../api/items'
 import { ROOM_NAMES } from '../api/labels'
 import { outcomeOf } from '../api/outcome'
 import type { Enemy, InventoryItem } from '../api/types'
+import { priceSuffix } from '../lib/itemText'
 import { canGoBack } from '../lib/navigation'
 import { clearBattleLog, runGameAction, useBattleLog, useGameBusy } from '../composables/game'
 import BattlePanel from '../components/game/BattlePanel.vue'
@@ -209,10 +210,10 @@ async function handleSell(item: InventoryItem): Promise<void> {
     v-else-if="stateLost"
     class="rounded border border-amber-900 bg-amber-950/30 p-4 text-sm text-amber-100"
   >
-    <p>Состояние этой игры не из чего восстановить.</p>
+    <p>Партию не из чего восстановить.</p>
     <p class="mt-2 text-xs opacity-80">
-      После вытеснения из кеша сервер поднимает партию из последнего сохранения, но у этой игры
-      сохранений не нашлось. Выбери другую игру или создай новую — ход партии уже не вернуть.
+      Партия восстанавливается из последнего сохранения, но у этой игры сохранений нет. Выбери
+      другую игру или создай новую — ход партии уже не вернуть.
     </p>
     <div class="mt-3 flex flex-wrap gap-2">
       <button
@@ -326,15 +327,18 @@ async function handleSell(item: InventoryItem): Promise<void> {
             >
               Надеть
             </button>
+          </template>
 
+          <!-- Продажа стоит у правого края карточки, остальные действия — слева. -->
+          <template v-if="isShop" #actions-end="{ item }">
             <button
-              v-if="isShop && canSell(item)"
+              v-if="canSell(item)"
               type="button"
               class="rounded border border-amber-800 px-3 py-1 text-xs text-amber-200 hover:bg-amber-950 disabled:opacity-40"
               :disabled="busy"
               @click="handleSell(item)"
             >
-              Продать
+              Продать{{ priceSuffix(item) }}
             </button>
           </template>
         </InventoryList>

@@ -55,7 +55,7 @@ function reportError(error: unknown, fallback: string): void {
   // Сохранение читает состояние из Redis напрямую, поэтому после долгого
   // простоя сервер честно сообщает, что состояния больше нет. Это не logout.
   if (error.code === CODE.sessionNotFound) {
-    ui.notify('Состояние игры истекло на сервере. Открой игру заново и повтори.')
+    ui.notify('Состояние игры устарело. Открой игру заново и повтори.')
     void queryClient.invalidateQueries({ queryKey: queryKeys.state })
     return
   }
@@ -114,13 +114,6 @@ async function handleDelete(save: Save): Promise<void> {
   <section class="space-y-6">
     <header>
       <h1 class="text-xl font-semibold">Сохранения</h1>
-      <p class="mt-1 text-sm text-stone-400">
-        Сохранение фиксирует текущую комнату и состояние партии, загрузка возвращает в неё.
-      </p>
-      <p class="mt-1 text-xs text-stone-500">
-        Удаляются не все: автосохранение и начальное сохранение сервер удалять не даёт — кнопка
-        покажет отказ.
-      </p>
     </header>
 
     <form

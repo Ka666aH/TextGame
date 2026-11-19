@@ -112,9 +112,6 @@ async function handleDelete(session: Session): Promise<void> {
   <section class="space-y-6">
     <header>
       <h1 class="text-xl font-semibold">Игровые сессии</h1>
-      <p class="mt-1 text-sm text-stone-400">
-        Каждая сессия — отдельное подземелье. Активная в каждый момент одна.
-      </p>
     </header>
 
     <form

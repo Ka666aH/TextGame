@@ -7,7 +7,6 @@ import {
   canUse,
   classifyItem,
   itemId,
-  kindLabel,
   plainRole,
   roomItemAction,
   structuralKind,
@@ -293,37 +292,6 @@ describe('classifyItem', () => {
     expect(view.canUse).toBe(false)
     expect(view.canSell).toBe(true)
     expect(view.id).toBe(18)
-  })
-})
-
-describe('kindLabel', () => {
-  it('уточняет слот брони по имени', () => {
-    expect(kindLabel(entry(ITEM_NAMES.ironHelm))).toBe('шлем')
-    expect(kindLabel(entry(ITEM_NAMES.woodenBucket))).toBe('шлем')
-    expect(kindLabel(entry(ITEM_NAMES.ironCuirass))).toBe('нагрудник')
-    expect(kindLabel(entry(ITEM_NAMES.leatherVest))).toBe('нагрудник')
-  })
-
-  it('уточняет роль простого предмета по имени', () => {
-    expect(kindLabel(entry(ITEM_NAMES.key))).toBe('ключ')
-    expect(kindLabel(entry(ITEM_NAMES.map))).toBe('карта')
-    expect(kindLabel(entry(ITEM_NAMES.coins))).toBe('монеты')
-    expect(kindLabel(entry(ITEM_NAMES.unknownPotion))).toBe('зелье')
-  })
-
-  it('называет оружие, лечение и сундук', () => {
-    expect(kindLabel(entry(ITEM_NAMES.ironSword))).toBe('оружие')
-    expect(kindLabel(entry(ITEM_NAMES.magicWand))).toBe('жезл')
-    expect(kindLabel(entry(ITEM_NAMES.bandage))).toBe('лечение')
-    expect(kindLabel(entry(ITEM_NAMES.chest))).toBe('сундук')
-  })
-
-  it('называет кулаки', () => {
-    expect(kindLabel(entry(ITEM_NAMES.fists))).toBe('кулаки')
-  })
-
-  it('не падает на незнакомом предмете', () => {
-    expect(kindLabel(makeItem({ id: 99, name: 'АРТЕФАКТ', cost: 1 }))).toBe('предмет')
   })
 })
 

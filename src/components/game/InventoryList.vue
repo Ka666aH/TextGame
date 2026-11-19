@@ -17,6 +17,11 @@ defineProps<{ items: InventoryItem[] }>()
           <template #actions>
             <slot name="actions" :item="item" :index="index" />
           </template>
+
+          <!-- Правый край карточки: в магазине это продажа. -->
+          <template v-if="$slots['actions-end']" #actions-end>
+            <slot name="actions-end" :item="item" :index="index" />
+          </template>
         </ItemCard>
       </li>
     </ul>

@@ -101,9 +101,6 @@ async function submit(): Promise<void> {
 <template>
   <section class="mx-auto w-full max-w-sm">
     <h1 class="text-2xl font-semibold">Подземелье</h1>
-    <p class="mt-1 text-sm text-stone-400">
-      Вход и регистрация. Сервер узнаёт тебя по httpOnly-куке, пароль нигде не хранится.
-    </p>
 
     <div class="mt-6 flex gap-2 text-sm">
       <button

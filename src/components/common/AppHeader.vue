@@ -18,7 +18,7 @@ const sessionName = computed(() => me.value?.sessionName ?? 'Игра не вы�
 const hasSession = computed(() => Boolean(me.value?.sessionId))
 
 async function handleLogout(): Promise<void> {
-  const confirmed = await ui.confirm('Выйти из аккаунта?', 'Куки будут удалены на сервере.')
+  const confirmed = await ui.confirm('Выйти из аккаунта?', 'Придётся войти заново.')
   if (!confirmed) return
 
   try {

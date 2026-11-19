@@ -125,44 +125,6 @@ export function classifyItem(item: InventoryItem): ItemView {
   }
 }
 
-const KIND_LABELS: Record<ItemKind, string> = {
-  chest: 'сундук',
-  fists: 'кулаки',
-  weapon: 'оружие',
-  wand: 'жезл',
-  armor: 'броня',
-  heal: 'лечение',
-  plain: 'предмет',
-}
-
-/**
- * Подпись вида предмета для интерфейса.
- *
- * Для брони и простых предметов поля не различают вид, поэтому уточняем
- * по имени — ровно там, где `structuralKind` бессилен.
- */
-export function kindLabel(item: InventoryItem): string {
-  const kind = structuralKind(item)
-
-  if (kind === 'armor') {
-    const slot = armorSlot(item)
-    if (slot === 'helm') return 'шлем'
-    if (slot === 'chestplate') return 'нагрудник'
-    return KIND_LABELS[kind]
-  }
-
-  if (kind === 'plain') {
-    const role = plainRole(item)
-    if (role === 'key') return 'ключ'
-    if (role === 'map') return 'карта'
-    if (role === 'coins') return 'монеты'
-    if (role === 'potion') return 'зелье'
-    return KIND_LABELS[kind]
-  }
-
-  return KIND_LABELS[kind]
-}
-
 export type RoomItemAction = 'take' | 'buy' | 'none'
 
 /**
