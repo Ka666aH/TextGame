@@ -33,6 +33,7 @@ import {
   useUseItemMutation,
 } from '../queries/game'
 import { queryKeys } from '../queries/keys'
+import { useCreateSaveMutation } from '../queries/saves'
 import { useUiStore } from '../stores/ui'
 
 const router = useRouter()
@@ -49,6 +50,7 @@ const sellMutation = useSellItemMutation()
 const nextRoomMutation = useGoNextRoomMutation()
 const goToRoomMutation = useGoToRoomMutation()
 const attackMutation = useAttackMutation()
+const saveMutation = useCreateSaveMutation()
 
 const mapOpen = ref(false)
 
@@ -201,6 +203,19 @@ async function handleSell(item: InventoryItem): Promise<void> {
 
   await runGameAction(() => sellMutation.mutateAsync(id), 'Не удалось продать предмет.')
 }
+
+/**
+ * Быстрое сохранение: имя не задаём — сервер подставит «РУЧНОЕ СОХРАНЕНИЕ ОТ …».
+ * Состояние к этому моменту уже лежит в кеше сервера: его положил `GET /state`,
+ * на котором построен экран.
+ */
+async function handleQuickSave(): Promise<void> {
+  const result = await runGameAction(
+    () => saveMutation.mutateAsync({}),
+    'Не удалось сохранить игру.',
+  )
+  if (result.ok) ui.notify('Сохранено.', 'success')
+}
 </script>
 
 <template>
@@ -245,7 +260,7 @@ async function handleSell(item: InventoryItem): Promise<void> {
   <div v-else-if="info" class="space-y-4">
     <StatBar :info="info" />
 
-    <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+    <div class="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
       <div class="space-y-4">
         <RoomPanel :room="info.room">
           <template #actions>
@@ -276,6 +291,28 @@ async function handleSell(item: InventoryItem): Promise<void> {
               @click="mapOpen = true"
             >
               Карта
+            </button>
+
+            <button
+              type="button"
+              class="rounded border border-stone-700 p-2 text-stone-300 hover:border-stone-500 hover:text-white disabled:opacity-40"
+              :disabled="busy"
+              aria-label="Сохранить игру"
+              title="Сохранить игру"
+              @click="handleQuickSave"
+            >
+              <svg
+                class="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                aria-hidden="true"
+              >
+                <path d="M4 4h11l5 5v11H4z" />
+                <path d="M8 4v6h7V4" />
+                <path d="M8 20v-6h8v6" />
+              </svg>
             </button>
           </template>
         </RoomPanel>

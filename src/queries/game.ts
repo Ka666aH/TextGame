@@ -23,7 +23,9 @@ import {
 import { isBattleLogArray, isBattleWin, isGameOver } from '../api/guards'
 import type { GameInfo, GameOver } from '../api/types'
 import { isPlainChestHit } from '../lib/chests'
+import { brokenEquipment } from '../lib/equipment'
 import { appendBattleLog } from '../composables/game'
+import { useUiStore } from '../stores/ui'
 import { queryClient } from './client'
 import { queryKeys } from './keys'
 
@@ -188,6 +190,29 @@ export function useGoToRoomMutation() {
   })
 }
 
+/**
+ * Перечитывает состояние после боя и объявляет сломанную экипировку.
+ *
+ * Сломанную вещь сервер выбрасывает молча: оружие заменяется кулаками, шлем и
+ * нагрудник обнуляются. Уведомления об этом в ответе нет, поэтому единственный
+ * признак — разница снимков до и после удара. Сравнение живёт здесь, а не на
+ * экране: «Снять» руками даёт такой же снимок, и путать его с поломкой нельзя.
+ */
+async function refetchAfterCombat(): Promise<void> {
+  const before = queryClient.getQueryData<GameInfo>(queryKeys.state)
+
+  await queryClient.invalidateQueries({ queryKey: queryKeys.state })
+
+  if (before === undefined) return
+  const after = queryClient.getQueryData<GameInfo>(queryKeys.state)
+  if (after === undefined) return
+
+  const broken = brokenEquipment(before, after)
+  if (broken.length === 0) return
+
+  useUiStore().notify(`Сломалось: ${broken.join(', ')}`)
+}
+
 /** Удар по врагу: три формы ответа, состояние перечитываем всегда. */
 export function useAttackMutation() {
   return useMutation({
@@ -207,7 +232,7 @@ export function useAttackMutation() {
 
       // В ответе нет состояния вообще: прочность могла сломаться, а `BattleWin`
       // не содержит `gameInfo` — перечитывание обязательно.
-      await queryClient.invalidateQueries({ queryKey: queryKeys.state })
+      await refetchAfterCombat()
 
       if (isBattleWin(result) && mimicBattle) {
         mimicBattle = false
@@ -298,7 +323,7 @@ export function useHitChestMutation() {
       appendBattleLog([log])
 
       // Состояния в ответе нет: хиты и прочность оружия могли измениться.
-      await queryClient.invalidateQueries({ queryKey: queryKeys.state })
+      await refetchAfterCombat()
 
       if (isBattleWin(result)) {
         // Мимик умер сразу: сундук уже вернулся в комнату мёртвым и открытым.

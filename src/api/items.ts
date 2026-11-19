@@ -125,6 +125,25 @@ export function classifyItem(item: InventoryItem): ItemView {
   }
 }
 
+export type ItemCategory = 'weapon' | 'armor' | 'heal' | 'other'
+
+/**
+ * Группа предмета для фильтра в инвентаре.
+ *
+ * Опираемся на структуру (ADR 0003): жезл — оружие, зелья — лечение, а
+ * «НЕИЗВЕСТНОЕ ЗЕЛЬЕ» приходит как обычный предмет и попадает туда же по
+ * имени (`plainRole`). Всё остальное — прочее: ключи, карта, монеты, сундуки.
+ */
+export function itemCategory(item: InventoryItem): ItemCategory {
+  const kind = structuralKind(item)
+
+  if (kind === 'weapon' || kind === 'wand') return 'weapon'
+  if (kind === 'armor') return 'armor'
+  if (kind === 'heal') return 'heal'
+  if (kind === 'plain' && plainRole(item) === 'potion') return 'heal'
+  return 'other'
+}
+
 export type RoomItemAction = 'take' | 'buy' | 'none'
 
 /**

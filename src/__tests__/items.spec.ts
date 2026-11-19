@@ -6,6 +6,7 @@ import {
   canSell,
   canUse,
   classifyItem,
+  itemCategory,
   itemId,
   plainRole,
   roomItemAction,
@@ -292,6 +293,34 @@ describe('classifyItem', () => {
     expect(view.canUse).toBe(false)
     expect(view.canSell).toBe(true)
     expect(view.id).toBe(18)
+  })
+})
+
+describe('itemCategory', () => {
+  it('меч и жезл — оружие', () => {
+    expect(itemCategory(entry(ITEM_NAMES.ironSword))).toBe('weapon')
+    expect(itemCategory(entry(ITEM_NAMES.magicWand))).toBe('weapon')
+  })
+
+  it('шлем и нагрудник — броня', () => {
+    expect(itemCategory(entry(ITEM_NAMES.ironHelm))).toBe('armor')
+    expect(itemCategory(entry(ITEM_NAMES.leatherVest))).toBe('armor')
+  })
+
+  it('повязка и неизвестное зелье — лечение', () => {
+    expect(itemCategory(entry(ITEM_NAMES.bandage))).toBe('heal')
+    // «НЕИЗВЕСТНОЕ ЗЕЛЬЕ» приходит как обычный предмет: вид берётся из имени.
+    expect(itemCategory(entry(ITEM_NAMES.unknownPotion))).toBe('heal')
+  })
+
+  it('ключ, карта и монеты — прочее', () => {
+    expect(itemCategory(entry(ITEM_NAMES.key))).toBe('other')
+    expect(itemCategory(entry(ITEM_NAMES.map))).toBe('other')
+    expect(itemCategory(entry(ITEM_NAMES.coins))).toBe('other')
+  })
+
+  it('сундук — прочее: он не переносится, но группа должна быть', () => {
+    expect(itemCategory(entry(ITEM_NAMES.chest))).toBe('other')
   })
 })
 
