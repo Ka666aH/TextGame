@@ -1,0 +1,131 @@
+name: CI
+
+# PR в любую ветку + пуш в main
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# новый пуш в ту же ветку отменяет ещё идущую сборку
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Линт, типы, юнит-тесты и сборка — без бэкенда и без БД.
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # pnpm: мажор из Dockerfile (10.x)
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      # node + кэш pnpm-стора между сборками (ключ — хэш lock-файла).
+      # Кэш работает только если pnpm уже установлен — поэтому этот шаг ПОСЛЕ action-setup.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      # без --fix: в CI проверяем, а не чиним
+      - run: pnpm exec oxlint .
+      - run: pnpm exec eslint .
+
+      - run: pnpm type-check
+
+      - run: pnpm test:unit
+
+      - run: pnpm build
+
+  # e2e против собранного фронта (preview :4173) и бэкенда из образа —
+  # той же версии, что стоит в docker-compose.yml. Исходники бэкенда
+  # в другом репо, поэтому в CI фронта они не собираются.
+  e2e:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: text_game_db
+          POSTGRES_USER: dev_user
+          POSTGRES_PASSWORD: dev_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dev_user -d text_game_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+
+    env:
+      # Держать синхронным с пином образа в docker-compose.yml.
+      API_IMAGE: ka666ah/text-game-api:1.1.0
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      # chromium + системные библиотеки для него
+      - run: pnpm exec playwright install --with-deps chromium
+
+      # preview-сервер из webServer (playwright.config) раздаёт dist/
+      - run: pnpm build
+
+      # Поднять API из образа на :5000 — vite-прокси ждёт его там.
+      # --network host: из контейнера видны service-контейнеры на localhost раннера,
+      # поэтому строки подключения с Host=localhost, а не Host=postgres.
+      # ASPNETCORE_URLS: в образе приложение слушает 8080, а прокси ждёт 5000.
+      - name: Start API
+        run: |
+          docker run -d --name text-game-api --network host \
+            -e ASPNETCORE_URLS=http://+:5000 \
+            -e "ConnectionStrings__PostgreSQL=Host=localhost;Port=5432;Database=text_game_db;Username=dev_user;Password=dev_password" \
+            -e ConnectionStrings__Redis=localhost:6379 \
+            -e JwtSettings__Secret=ci-secret-key-at-least-32-characters-long \
+            "$API_IMAGE"
+          timeout 90 bash -c 'until curl -sf http://localhost:5000/health; do sleep 1; done'
+
+      # playwright.config сам поднимает preview: в CI reuseExistingServer выключен.
+      # Осторожно с падениями auth-тестов: лимит авторизации 5 запросов в минуту
+      # с одного IP, а на CI включены ретраи (retries: 2) — упавший тест на ретрае
+      # может упереться в 429.
+      - run: pnpm test:e2e
+
+      - name: Upload traces
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7

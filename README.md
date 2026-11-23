@@ -1,5 +1,7 @@
 # TextGame — фронтенд
 
+[![CI](https://github.com/Ka666aH/TextGame/actions/workflows/ci.yml/badge.svg)](https://github.com/Ka666aH/TextGame/actions/workflows/ci.yml)
+
 SPA для текстовой roguelike-игры. Бэкенд — [Ka666aH/TextGameAPI](https://github.com/Ka666aH/TextGameAPI): всё состояние партии живёт на сервере, авторизация на httpOnly-куках, токены из браузера недоступны.
 
 Экраны: вход и регистрация, список игр, экран игры (комната, карта, предметы, экипировка, сундуки, бой, магазин), сохранения, экран исхода.
