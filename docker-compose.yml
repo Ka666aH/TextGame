@@ -1,0 +1,74 @@
+# Весь проект одной командой: docker compose up --build (сборка фронта),
+# дальше — просто docker compose up. Сайт: http://localhost:${WEB_PORT:-8080}.
+#
+# web            — nginx со статикой dist/ и прокси /api на бэкенд (deploy/nginx.conf);
+# text-game-api  — готовый образ API; имя сервиса совпадает с proxy_pass в nginx.conf;
+# postgres/redis — обязательны: миграции применяются при старте API, состояние живёт в Redis.
+#
+# API и БД наружу не публикуются: единственный вход — nginx (один origin, куки на нём,
+# Swagger в проде не нужен; при необходимости он доступен через /api/swagger).
+
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      - text-game-api
+
+  text-game-api:
+    image: ka666ah/text-game-api:1.1.0
+    restart: unless-stopped
+    environment:
+      ConnectionStrings__PostgreSQL: Host=postgres;Port=5432;Database=${POSTGRES_DB:-text_game_db};Username=${POSTGRES_USER:-dev_user};Password=${POSTGRES_PASSWORD:-dev_password}
+      ConnectionStrings__Redis: redis:6379
+      JwtSettings__Secret: ${JWT_SECRET:-developer-secret-key-32chars-minimum}
+      # IP nginx-контейнера в Docker плавает, поэтому доверяем всей подсети compose-сети:
+      # без этого бэкенд считает IP-источником адрес nginx, а куки уходят без Secure
+      # (backend-requests.md, п.12: «подсеть дадим со стороны деплоя»).
+      ForwardedHeaders__KnownNetworks__0: ${TEXTGAME_SUBNET:-10.10.0.0/16}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-text_game_db}
+      POSTGRES_USER: ${POSTGRES_USER:-dev_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres-data:/var/lib/postgresql
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - redis-data:/data
+
+volumes:
+  postgres-data:
+  redis-data:
+
+networks:
+  default:
+    # Фиксированная подсеть — её бэкенд доверяет как источнику X-Forwarded-*.
+    # Значение должно совпадать с TEXTGAME_SUBNET; сменили в .env — сначала
+    # docker compose down, существующую сеть Docker не переподнимает.
+    ipam:
+      config:
+        - subnet: ${TEXTGAME_SUBNET:-10.10.0.0/16}

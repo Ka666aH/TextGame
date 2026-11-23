@@ -10,7 +10,15 @@ Vue 3 + TypeScript (SFC, `<script setup>`), Vite, Vue Router, TanStack Query д�
 
 ## Быстрый старт
 
-Нужен поднятый бэкенд: `docker compose up` в его репозитории, дальше `http://localhost:5000`.
+Весь проект одной командой — из корня этого репозитория:
+
+```sh
+docker compose up --build   # первый запуск собирает фронт; дальше — docker compose up
+```
+
+Поднимаются фронт (nginx со статикой), API `ka666ah/text-game-api:1.1.0`, Postgres и Redis. Сайт — `http://localhost:8080`; порт и переменные окружения — в `.env`, описание стека — в `notes/deploy.md`.
+
+Для разработки фронта нужен поднятый бэкенд: `docker compose up` в его репозитории, дальше `http://localhost:5000`:
 
 ```sh
 pnpm install
@@ -67,3 +75,5 @@ deploy/        конфиг nginx для выкладки
 ## Деплой
 
 `pnpm build`, затем статика `dist/` за nginx на том же домене, что API. Готовый серверный блок — [deploy/nginx.conf](deploy/nginx.conf), пояснения и чек-лист проверки — в `notes/deploy.md`.
+
+Тот же стек в виде compose лежит в корне: [docker-compose.yml](docker-compose.yml) поднимает фронт, API, Postgres и Redis, [Dockerfile](Dockerfile) собирает статику тем же nginx-конфигом.

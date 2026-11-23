@@ -1,0 +1,16 @@
+# Локальные артефакты и служебные каталоги: в сборку фронтенда не нужны.
+.git
+node_modules
+dist
+coverage
+test-results
+playwright-report
+.eslintcache
+*.log
+notes
+.vscode
+.env
+
+# Конфиги TypeScript (vite.config.ts, playwright.config.ts, eslint.config.ts,
+# tsconfig*.json) НЕ исключаем: pnpm build гоняет vue-tsc --build по всем
+# проектам, и без них type-check в образе упадёт.
