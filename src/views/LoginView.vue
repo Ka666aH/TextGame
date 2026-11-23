@@ -106,7 +106,7 @@ async function submit(): Promise<void> {
       <button
         type="button"
         class="rounded px-3 py-1"
-        :class="mode === 'login' ? 'bg-stone-700 text-white' : 'text-stone-400 hover:text-white'"
+        :class="mode === 'login' ? 'bg-active text-strong' : 'text-muted hover:text-strong'"
         @click="switchMode('login')"
       >
         Вход
@@ -114,7 +114,7 @@ async function submit(): Promise<void> {
       <button
         type="button"
         class="rounded px-3 py-1"
-        :class="mode === 'register' ? 'bg-stone-700 text-white' : 'text-stone-400 hover:text-white'"
+        :class="mode === 'register' ? 'bg-active text-strong' : 'text-muted hover:text-strong'"
         @click="switchMode('register')"
       >
         Регистрация
@@ -123,53 +123,53 @@ async function submit(): Promise<void> {
 
     <form class="mt-4 space-y-4" @submit.prevent="submit">
       <div>
-        <label class="block text-sm text-stone-300" for="login">Логин</label>
+        <label class="block text-sm text-ink-soft" for="login">Логин</label>
         <input
           id="login"
           v-model="form.login"
           type="text"
           autocomplete="username"
-          class="mt-1 w-full rounded border border-stone-700 bg-stone-900 px-3 py-2 text-sm outline-none focus:border-stone-500"
+          class="mt-1 w-full rounded border border-line-strong bg-panel px-3 py-2 text-sm outline-none focus:border-line-hover"
         />
-        <p v-if="formErrors.login" class="mt-1 text-xs text-red-400">{{ formErrors.login }}</p>
+        <p v-if="formErrors.login" class="mt-1 text-xs text-danger-ink">{{ formErrors.login }}</p>
       </div>
 
       <div>
-        <label class="block text-sm text-stone-300" for="password">Пароль</label>
+        <label class="block text-sm text-ink-soft" for="password">Пароль</label>
         <input
           id="password"
           v-model="form.password"
           type="password"
           :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
-          class="mt-1 w-full rounded border border-stone-700 bg-stone-900 px-3 py-2 text-sm outline-none focus:border-stone-500"
+          class="mt-1 w-full rounded border border-line-strong bg-panel px-3 py-2 text-sm outline-none focus:border-line-hover"
         />
-        <p v-if="formErrors.password" class="mt-1 text-xs text-red-400">
+        <p v-if="formErrors.password" class="mt-1 text-xs text-danger-ink">
           {{ formErrors.password }}
         </p>
-        <p v-else-if="mode === 'register'" class="mt-1 text-xs text-stone-500">
+        <p v-else-if="mode === 'register'" class="mt-1 text-xs text-muted-dim">
           Нужна заглавная латинская буква и цифра.
         </p>
       </div>
 
       <div v-if="mode === 'register'">
-        <label class="block text-sm text-stone-300" for="confirmation">Пароль ещё раз</label>
+        <label class="block text-sm text-ink-soft" for="confirmation">Пароль ещё раз</label>
         <input
           id="confirmation"
           v-model="form.confirmation"
           type="password"
           autocomplete="new-password"
-          class="mt-1 w-full rounded border border-stone-700 bg-stone-900 px-3 py-2 text-sm outline-none focus:border-stone-500"
+          class="mt-1 w-full rounded border border-line-strong bg-panel px-3 py-2 text-sm outline-none focus:border-line-hover"
         />
-        <p v-if="formErrors.confirmation" class="mt-1 text-xs text-red-400">
+        <p v-if="formErrors.confirmation" class="mt-1 text-xs text-danger-ink">
           {{ formErrors.confirmation }}
         </p>
       </div>
 
-      <p v-if="serverError" class="text-sm text-red-400" role="alert">{{ serverError }}</p>
+      <p v-if="serverError" class="text-sm text-danger-ink" role="alert">{{ serverError }}</p>
 
       <button
         type="submit"
-        class="w-full rounded bg-stone-200 px-3 py-2 text-sm font-medium text-stone-900 hover:bg-white disabled:opacity-50"
+        class="w-full rounded bg-primary px-3 py-2 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-50"
         :disabled="pending"
       >
         {{ pending ? 'Отправляю…' : submitLabel }}

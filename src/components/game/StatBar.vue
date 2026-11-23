@@ -23,12 +23,12 @@ const healthTone = computed(() => {
   дублируется — она живёт в колонке справа, где её можно снять.
 -->
 <template>
-  <div class="rounded border border-stone-800 bg-stone-900/60 px-4 py-3">
+  <div class="rounded border border-line bg-panel/60 px-4 py-3">
     <div class="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
       <div class="flex items-center gap-2">
-        <span class="text-xs tracking-wide text-stone-500 uppercase">здоровье</span>
-        <span class="font-mono text-stone-100">{{ info.currentHealth }}/{{ info.maxHealth }}</span>
-        <span class="h-2 w-32 overflow-hidden rounded bg-stone-800">
+        <span class="text-xs tracking-wide text-muted-dim uppercase">здоровье</span>
+        <span class="font-mono text-ink">{{ info.currentHealth }}/{{ info.maxHealth }}</span>
+        <span class="h-2 w-32 overflow-hidden rounded bg-raised">
           <span
             class="block h-full transition-all"
             :class="healthTone"
@@ -38,13 +38,13 @@ const healthTone = computed(() => {
       </div>
 
       <div class="flex items-center gap-2">
-        <span class="text-xs tracking-wide text-stone-500 uppercase">монеты</span>
-        <span class="font-mono text-stone-100">{{ info.coins }}</span>
+        <span class="text-xs tracking-wide text-muted-dim uppercase">монеты</span>
+        <span class="font-mono text-ink">{{ info.coins }}</span>
       </div>
 
       <div class="flex items-center gap-2">
-        <span class="text-xs tracking-wide text-stone-500 uppercase">ключи</span>
-        <span class="font-mono text-stone-100">{{ info.keys }}</span>
+        <span class="text-xs tracking-wide text-muted-dim uppercase">ключи</span>
+        <span class="font-mono text-ink">{{ info.keys }}</span>
       </div>
     </div>
   </div>

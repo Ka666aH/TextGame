@@ -117,53 +117,53 @@ async function handleDelete(save: Save): Promise<void> {
     </header>
 
     <form
-      class="flex flex-wrap items-end gap-3 rounded border border-stone-800 bg-stone-900/60 p-4"
+      class="flex flex-wrap items-end gap-3 rounded border border-line bg-panel/60 p-4"
       @submit.prevent="handleCreate"
     >
       <label class="flex flex-col gap-1 text-sm">
-        <span class="text-stone-300">
-          Название <span class="text-stone-500">(необязательно)</span>
+        <span class="text-ink-soft">
+          Название <span class="text-muted-dim">(необязательно)</span>
         </span>
         <input
           v-model="form.name"
           type="text"
           :maxlength="MAX_NAME_LENGTH"
           placeholder="РУЧНОЕ СОХРАНЕНИЕ"
-          class="w-64 rounded border border-stone-700 bg-stone-900 px-3 py-2 text-sm outline-none focus:border-stone-500"
+          class="w-64 rounded border border-line-strong bg-panel px-3 py-2 text-sm outline-none focus:border-line-hover"
         />
       </label>
 
       <button
         type="submit"
-        class="rounded bg-stone-200 px-4 py-2 text-sm font-medium text-stone-900 hover:bg-white disabled:opacity-50"
+        class="rounded bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-50"
         :disabled="saving"
       >
         {{ saving ? 'Сохраняю…' : 'Сохранить игру' }}
       </button>
 
-      <p v-if="nameError" class="w-full text-xs text-red-400">{{ nameError }}</p>
+      <p v-if="nameError" class="w-full text-xs text-danger-ink">{{ nameError }}</p>
     </form>
 
-    <p v-if="savesPending" class="text-sm text-stone-400">Загружаю сохранения…</p>
-    <p v-else-if="savesFailed" class="text-sm text-red-400">Не удалось загрузить сохранения.</p>
-    <p v-else-if="isEmpty" class="text-sm text-stone-400">Сохранений пока нет.</p>
+    <p v-if="savesPending" class="text-sm text-muted">Загружаю сохранения…</p>
+    <p v-else-if="savesFailed" class="text-sm text-danger-ink">Не удалось загрузить сохранения.</p>
+    <p v-else-if="isEmpty" class="text-sm text-muted">Сохранений пока нет.</p>
 
     <ul v-else class="space-y-2">
       <li
         v-for="save in saves"
         :key="save.id"
-        class="flex flex-wrap items-center gap-3 rounded border border-stone-800 bg-stone-900/60 px-4 py-3"
+        class="flex flex-wrap items-center gap-3 rounded border border-line bg-panel/60 px-4 py-3"
       >
         <div class="min-w-0 flex-1">
-          <p class="truncate text-sm text-stone-100">{{ save.name || 'Без названия' }}</p>
-          <p class="text-xs text-stone-500">
+          <p class="truncate text-sm text-ink">{{ save.name || 'Без названия' }}</p>
+          <p class="text-xs text-muted-dim">
             комната {{ save.room }} · {{ formatDateTime(save.createdAt) }}
           </p>
         </div>
 
         <button
           type="button"
-          class="rounded border border-stone-700 px-3 py-1 text-sm text-stone-200 hover:border-stone-500 hover:text-white disabled:opacity-50"
+          class="rounded border border-line-strong px-3 py-1 text-sm text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-50"
           :disabled="busyId === save.id"
           @click="handleLoad(save)"
         >
@@ -172,7 +172,7 @@ async function handleDelete(save: Save): Promise<void> {
 
         <button
           type="button"
-          class="rounded border border-red-900 px-3 py-1 text-sm text-red-300 hover:bg-red-950 disabled:opacity-50"
+          class="rounded border border-danger-line px-3 py-1 text-sm text-danger-ink hover:bg-danger-soft-strong disabled:opacity-50"
           :disabled="busyId === save.id"
           @click="handleDelete(save)"
         >

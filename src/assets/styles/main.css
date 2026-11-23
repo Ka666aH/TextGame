@@ -1,0 +1,121 @@
+@import 'tailwindcss';
+
+/*
+ * Темы живут в токенах, а не в `dark:`-вариантах.
+ *
+ * В разметке нет ни одного `dark:`-класса: компоненты говорят ролями
+ * (`bg-panel`, `text-muted`), а значения ролей подставляет тема. Поэтому
+ * светлая тема — это один блок переопределений ниже, а не второй набор
+ * классов в двадцати файлах.
+ *
+ * Тёмная тема — значения `@theme`, то есть по умолчанию; светлая — класс
+ * `light` на `<html>`, который ставит `lib/theme.ts`. Одно и то же имя токена
+ * означает одну и ту же роль в обеих темах: `surface` — фон страницы,
+ * `panel` — поверхность карточки, `line` — граница, `ink` — основной текст.
+ */
+@theme {
+  --font-mono: 'JetBrains Mono', 'Cascadia Mono', 'Consolas', ui-monospace, monospace;
+
+  /* Поверхности */
+  --color-surface: #0c0a09;
+  --color-panel: #1c1917;
+  --color-raised: #292524;
+  --color-active: #44403c;
+  --color-overlay: #000000;
+
+  /* Основная кнопка: в тёмной теме светлая, в светлой — тёмная. */
+  --color-primary: #e7e5e4;
+  --color-primary-hover: #ffffff;
+  --color-on-primary: #1c1917;
+
+  /* Линии */
+  --color-line: #292524;
+  --color-line-strong: #44403c;
+  --color-line-hover: #78716c;
+
+  /* Текст: от основного к самому бледному */
+  --color-ink: #f5f5f4;
+  --color-ink-soft: #d6d3d1;
+  --color-muted: #a8a29e;
+  --color-muted-dim: #78716c;
+  --color-faint: #57534e;
+  --color-strong: #ffffff;
+
+  /* Опасность: ошибки, смерть, удаление */
+  --color-danger: #7f1d1d;
+  --color-danger-strong: #991b1b;
+  --color-danger-soft: #450a0a;
+  --color-danger-soft-strong: #7f1d1d;
+  --color-danger-line: #7f1d1d;
+  --color-danger-ink: #fca5a5;
+  --color-on-danger: #fef2f2;
+
+  /* Предупреждение: магазин, лут, нехватка денег */
+  --color-warn-soft: #451a03;
+  --color-warn-soft-strong: #78350f;
+  --color-warn-line: #92400e;
+  --color-warn-ink: #fde68a;
+
+  /* Успех: лечение, победа, сохранение */
+  --color-ok-soft: #022c22;
+  --color-ok-soft-strong: #065f46;
+  --color-ok-line: #065f46;
+  --color-ok-ink: #a7f3d0;
+}
+
+/*
+ * Светлая тема. Значения подобраны по ролям, а не инверсией: панель светлее
+ * фона, линия темнее панели, основная кнопка тёмная с светлым текстом.
+ */
+html.light {
+  color-scheme: light;
+
+  --color-surface: #fafaf9;
+  --color-panel: #ffffff;
+  --color-raised: #f5f5f4;
+  --color-active: #e7e5e4;
+  --color-overlay: #0c0a09;
+
+  --color-primary: #1c1917;
+  --color-primary-hover: #292524;
+  --color-on-primary: #fafaf9;
+
+  --color-line: #e7e5e4;
+  --color-line-strong: #d6d3d1;
+  --color-line-hover: #a8a29e;
+
+  --color-ink: #1c1917;
+  --color-ink-soft: #44403c;
+  --color-muted: #57534e;
+  --color-muted-dim: #78716c;
+  --color-faint: #a8a29e;
+  --color-strong: #0c0a09;
+
+  --color-danger: #dc2626;
+  --color-danger-strong: #b91c1c;
+  --color-danger-soft: #fef2f2;
+  --color-danger-soft-strong: #fee2e2;
+  --color-danger-line: #fca5a5;
+  --color-danger-ink: #b91c1c;
+  --color-on-danger: #ffffff;
+
+  --color-warn-soft: #fffbeb;
+  --color-warn-soft-strong: #fde68a;
+  --color-warn-line: #fcd34d;
+  --color-warn-ink: #b45309;
+
+  --color-ok-soft: #ecfdf5;
+  --color-ok-soft-strong: #d1fae5;
+  --color-ok-line: #6ee7b7;
+  --color-ok-ink: #047857;
+}
+
+html {
+  color-scheme: dark;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}

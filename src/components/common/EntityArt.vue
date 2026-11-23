@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import { monogram, type ArtKind } from '../../lib/art'
+import { artFile, monogram, type ArtKind } from '../../lib/art'
+import { useTheme } from '../../lib/theme'
 
 const props = withDefaults(
   defineProps<{
@@ -12,23 +13,17 @@ const props = withDefaults(
   { size: 'md' },
 )
 
+const { theme } = useTheme()
+
 /**
- * Единственное место, где сущность рисуется. Сейчас — монограмма в рамке;
- * когда появятся спрайты, заменится только разметка внутри, а `kind` и `name`
- * останутся теми же. Поэтому экраны никогда не передают сюда картинку.
+ * Единственное место, где сущность рисуется картинкой.
+ *
+ * Иконка приходит по `kind` + `name` — экраны никогда не передают путь.
+ * Если для сущности рисунка нет (например, игрок), остаётся монограмма:
+ * интерфейс читаем и без картинок.
  */
-const tone = computed(() => {
-  switch (props.kind) {
-    case 'enemy':
-      return 'border-red-900/70 bg-red-950/40 text-red-200'
-    case 'item':
-      return 'border-amber-900/70 bg-amber-950/30 text-amber-200'
-    case 'player':
-      return 'border-emerald-900/70 bg-emerald-950/30 text-emerald-200'
-    default:
-      return 'border-stone-700 bg-stone-900 text-stone-200'
-  }
-})
+const source = computed(() => artFile(props.kind, props.name, theme.value))
+const letter = computed(() => monogram(props.name))
 
 const sizeClass = computed(() => {
   switch (props.size) {
@@ -40,14 +35,17 @@ const sizeClass = computed(() => {
       return 'h-10 w-10 text-base'
   }
 })
-
-const letter = computed(() => monogram(props.name))
 </script>
 
 <template>
+  <span v-if="source" class="flex shrink-0 items-center justify-center" :class="sizeClass">
+    <img class="h-full w-full object-contain" :src="source" :alt="name" />
+  </span>
+
   <span
-    class="flex shrink-0 items-center justify-center rounded border font-mono leading-none"
-    :class="[tone, sizeClass]"
+    v-else
+    class="flex shrink-0 items-center justify-center rounded border border-line-strong bg-panel font-mono text-ink-soft leading-none"
+    :class="sizeClass"
     role="img"
     :aria-label="name"
   >

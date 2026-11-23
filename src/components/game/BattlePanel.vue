@@ -13,23 +13,23 @@ const emit = defineEmits<{ attack: [] }>()
 </script>
 
 <template>
-  <section class="rounded border border-red-900/60 bg-red-950/20 p-4">
+  <section class="rounded border border-danger-line/60 bg-danger-soft/20 p-4">
     <div class="flex items-start gap-3">
       <EntityArt kind="enemy" :name="enemy.name" size="lg" />
 
       <div class="min-w-0 flex-1">
-        <h2 class="text-lg font-semibold text-red-100">{{ enemy.name }}</h2>
-        <p class="mt-1 text-sm text-stone-300">{{ enemy.description }}</p>
+        <h2 class="text-lg font-semibold text-danger-ink">{{ enemy.name }}</h2>
+        <p class="mt-1 text-sm text-ink-soft">{{ enemy.description }}</p>
 
-        <p class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone-400">
+        <p class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
           <span>
-            здоровье <span class="font-mono text-stone-100">{{ enemy.health }}</span>
+            здоровье <span class="font-mono text-ink">{{ enemy.health }}</span>
           </span>
           <span>
-            урон <span class="font-mono text-stone-100">{{ enemy.damage }}</span>
+            урон <span class="font-mono text-ink">{{ enemy.damage }}</span>
           </span>
           <span>
-            блок <span class="font-mono text-stone-100">{{ enemy.damageBlock }}</span>
+            блок <span class="font-mono text-ink">{{ enemy.damageBlock }}</span>
           </span>
         </p>
       </div>
@@ -38,7 +38,7 @@ const emit = defineEmits<{ attack: [] }>()
     <div class="mt-4">
       <button
         type="button"
-        class="rounded bg-red-800 px-4 py-2 text-sm font-medium text-red-50 hover:bg-red-700 disabled:opacity-40"
+        class="rounded bg-danger px-4 py-2 text-sm font-medium text-on-danger hover:bg-danger-strong disabled:opacity-40"
         :disabled="disabled"
         @click="emit('attack')"
       >
@@ -48,7 +48,7 @@ const emit = defineEmits<{ attack: [] }>()
 
     <ol
       v-if="log.length > 0"
-      class="mt-4 space-y-1 border-t border-red-900/40 pt-3 font-mono text-xs text-stone-300"
+      class="mt-4 space-y-1 border-t border-danger-line/40 pt-3 font-mono text-xs text-ink-soft"
       aria-live="polite"
     >
       <li v-for="(entry, index) in log" :key="index">{{ battleLogLine(entry) }}</li>

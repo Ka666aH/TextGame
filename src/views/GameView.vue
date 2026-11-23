@@ -219,11 +219,11 @@ async function handleQuickSave(): Promise<void> {
 </script>
 
 <template>
-  <p v-if="isPending" class="text-sm text-stone-400">Загружаю состояние…</p>
+  <p v-if="isPending" class="text-sm text-muted">Загружаю состояние…</p>
 
   <section
     v-else-if="stateLost"
-    class="rounded border border-amber-900 bg-amber-950/30 p-4 text-sm text-amber-100"
+    class="rounded border border-warn-line bg-warn-soft/30 p-4 text-sm text-warn-ink"
   >
     <p>Партию не из чего восстановить.</p>
     <p class="mt-2 text-xs opacity-80">
@@ -233,7 +233,7 @@ async function handleQuickSave(): Promise<void> {
     <div class="mt-3 flex flex-wrap gap-2">
       <button
         type="button"
-        class="rounded bg-stone-200 px-4 py-2 text-sm font-medium text-stone-900 hover:bg-white"
+        class="rounded bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:bg-primary-hover"
         @click="goTo('saves')"
       >
         К сохранениям
@@ -241,7 +241,7 @@ async function handleQuickSave(): Promise<void> {
 
       <button
         type="button"
-        class="rounded border border-stone-700 px-4 py-2 text-sm text-stone-200 hover:border-stone-500 hover:text-white"
+        class="rounded border border-line-strong px-4 py-2 text-sm text-ink-soft hover:border-line-hover hover:text-strong"
         @click="goTo('sessions')"
       >
         К списку игр
@@ -251,7 +251,7 @@ async function handleQuickSave(): Promise<void> {
 
   <section
     v-else-if="isError"
-    class="rounded border border-red-900 bg-red-950/40 p-4 text-sm text-red-200"
+    class="rounded border border-danger-line bg-danger-soft/40 p-4 text-sm text-danger-ink"
   >
     <p>Не удалось загрузить состояние игры.</p>
     <p class="mt-2 text-xs opacity-80">{{ errorText }}</p>
@@ -267,7 +267,7 @@ async function handleQuickSave(): Promise<void> {
             <button
               v-if="canWalkBack"
               type="button"
-              class="rounded border border-stone-700 px-4 py-2 text-sm text-stone-200 hover:border-stone-500 hover:text-white disabled:opacity-40"
+              class="rounded border border-line-strong px-4 py-2 text-sm text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-40"
               :disabled="busy || inBattle"
               @click="handleGoBack"
             >
@@ -276,7 +276,7 @@ async function handleQuickSave(): Promise<void> {
 
             <button
               type="button"
-              class="rounded bg-stone-200 px-4 py-2 text-sm font-medium text-stone-900 hover:bg-white disabled:opacity-40"
+              class="rounded bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-40"
               :disabled="busy || inBattle"
               @click="handleNextRoom"
             >
@@ -286,7 +286,7 @@ async function handleQuickSave(): Promise<void> {
             <button
               v-if="mapAvailable"
               type="button"
-              class="rounded border border-stone-700 px-4 py-2 text-sm text-stone-200 hover:border-stone-500 hover:text-white disabled:opacity-40"
+              class="rounded border border-line-strong px-4 py-2 text-sm text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-40"
               :disabled="busy"
               @click="mapOpen = true"
             >
@@ -295,7 +295,7 @@ async function handleQuickSave(): Promise<void> {
 
             <button
               type="button"
-              class="rounded border border-stone-700 p-2 text-stone-300 hover:border-stone-500 hover:text-white disabled:opacity-40"
+              class="rounded border border-line-strong p-2 text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-40"
               :disabled="busy"
               aria-label="Сохранить игру"
               title="Сохранить игру"
@@ -348,7 +348,7 @@ async function handleQuickSave(): Promise<void> {
             <button
               v-if="canUse(item)"
               type="button"
-              class="rounded border border-emerald-800 px-3 py-1 text-xs text-emerald-200 hover:bg-emerald-950 disabled:opacity-40"
+              class="rounded border border-ok-line px-3 py-1 text-xs text-ok-ink hover:bg-ok-soft-strong disabled:opacity-40"
               :disabled="busy"
               @click="handleUse(item)"
             >
@@ -358,7 +358,7 @@ async function handleQuickSave(): Promise<void> {
             <button
               v-if="canEquip(item)"
               type="button"
-              class="rounded border border-stone-700 px-3 py-1 text-xs text-stone-200 hover:border-stone-500 hover:text-white disabled:opacity-40"
+              class="rounded border border-line-strong px-3 py-1 text-xs text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-40"
               :disabled="busy"
               @click="handleEquip(item)"
             >
@@ -371,7 +371,7 @@ async function handleQuickSave(): Promise<void> {
             <button
               v-if="canSell(item)"
               type="button"
-              class="rounded border border-amber-800 px-3 py-1 text-xs text-amber-200 hover:bg-amber-950 disabled:opacity-40"
+              class="rounded border border-warn-line px-3 py-1 text-xs text-warn-ink hover:bg-warn-soft-strong disabled:opacity-40"
               :disabled="busy"
               @click="handleSell(item)"
             >

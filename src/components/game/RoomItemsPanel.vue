@@ -102,16 +102,16 @@ async function buy(item: InventoryItem): Promise<void> {
 </script>
 
 <template>
-  <section v-if="searchable" class="rounded border border-stone-800 bg-stone-900/40 p-3">
+  <section v-if="searchable" class="rounded border border-line bg-panel/40 p-3">
     <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-      <h2 class="text-xs tracking-wide text-stone-500 uppercase">
+      <h2 class="text-xs tracking-wide text-muted-dim uppercase">
         в комнате{{ inShop ? ' (магазин)' : '' }}
       </h2>
 
       <div class="flex gap-2">
         <button
           type="button"
-          class="rounded border border-stone-700 px-3 py-1 text-xs text-stone-200 hover:border-stone-500 hover:text-white disabled:opacity-40"
+          class="rounded border border-line-strong px-3 py-1 text-xs text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-40"
           :disabled="busy"
           @click="search"
         >
@@ -121,7 +121,7 @@ async function buy(item: InventoryItem): Promise<void> {
         <button
           v-if="searched && items.length > 0 && !inShop"
           type="button"
-          class="rounded border border-stone-700 px-3 py-1 text-xs text-stone-200 hover:border-stone-500 hover:text-white disabled:opacity-40"
+          class="rounded border border-line-strong px-3 py-1 text-xs text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-40"
           :disabled="busy"
           @click="takeAll"
         >
@@ -130,9 +130,11 @@ async function buy(item: InventoryItem): Promise<void> {
       </div>
     </div>
 
-    <p v-if="failed" class="text-sm text-red-300">Не удалось обыскать комнату. Нажми «Обыскать».</p>
-    <p v-else-if="!searched" class="text-sm text-stone-500">Обыскиваю комнату…</p>
-    <p v-else-if="items.length === 0" class="text-sm text-stone-500">Пусто.</p>
+    <p v-if="failed" class="text-sm text-danger-ink">
+      Не удалось обыскать комнату. Нажми «Обыскать».
+    </p>
+    <p v-else-if="!searched" class="text-sm text-muted-dim">Обыскиваю комнату…</p>
+    <p v-else-if="items.length === 0" class="text-sm text-muted-dim">Пусто.</p>
 
     <ul v-else class="space-y-2">
       <li v-for="item in items" :key="item.id ?? item.name" class="space-y-1">
@@ -141,7 +143,7 @@ async function buy(item: InventoryItem): Promise<void> {
             <button
               v-if="roomItemAction(item, inShop) === 'take'"
               type="button"
-              class="rounded border border-stone-700 px-3 py-1 text-xs text-stone-200 hover:border-stone-500 hover:text-white disabled:opacity-40"
+              class="rounded border border-line-strong px-3 py-1 text-xs text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-40"
               :disabled="busy"
               @click="take(item)"
             >
@@ -151,7 +153,7 @@ async function buy(item: InventoryItem): Promise<void> {
             <button
               v-if="roomItemAction(item, inShop) === 'buy'"
               type="button"
-              class="rounded border border-amber-800 px-3 py-1 text-xs text-amber-200 hover:bg-amber-950 disabled:opacity-40"
+              class="rounded border border-warn-line px-3 py-1 text-xs text-warn-ink hover:bg-warn-soft-strong disabled:opacity-40"
               :disabled="busy"
               @click="buy(item)"
             >

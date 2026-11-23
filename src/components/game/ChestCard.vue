@@ -157,15 +157,12 @@ async function takeAll(): Promise<void> {
 </script>
 
 <template>
-  <div
-    v-if="chestId !== null"
-    class="mt-1 rounded border border-stone-800 bg-stone-950/50 px-3 py-2"
-  >
+  <div v-if="chestId !== null" class="mt-1 rounded border border-line bg-surface/50 px-3 py-2">
     <div class="flex flex-wrap items-center gap-2">
       <button
         v-if="!hasLoot && alreadyOpen"
         type="button"
-        class="rounded border border-stone-700 px-3 py-1 text-xs text-stone-200 hover:border-stone-500 hover:text-white disabled:opacity-40"
+        class="rounded border border-line-strong px-3 py-1 text-xs text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-40"
         :disabled="busy"
         @click="search"
       >
@@ -176,7 +173,7 @@ async function takeAll(): Promise<void> {
         <button
           v-if="locked"
           type="button"
-          class="rounded border border-amber-800 px-3 py-1 text-xs text-amber-200 hover:bg-amber-950 disabled:opacity-40"
+          class="rounded border border-warn-line px-3 py-1 text-xs text-warn-ink hover:bg-warn-soft-strong disabled:opacity-40"
           :disabled="busy"
           @click="unlock"
         >
@@ -186,7 +183,7 @@ async function takeAll(): Promise<void> {
         <button
           v-else
           type="button"
-          class="rounded bg-stone-200 px-3 py-1 text-xs font-medium text-stone-900 hover:bg-white disabled:opacity-40"
+          class="rounded bg-primary px-3 py-1 text-xs font-medium text-on-primary hover:bg-primary-hover disabled:opacity-40"
           :disabled="busy"
           @click="openChest"
         >
@@ -195,7 +192,7 @@ async function takeAll(): Promise<void> {
 
         <button
           type="button"
-          class="rounded border border-stone-700 px-3 py-1 text-xs text-stone-200 hover:border-stone-500 hover:text-white disabled:opacity-40"
+          class="rounded border border-line-strong px-3 py-1 text-xs text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-40"
           :disabled="busy"
           @click="hit"
         >
@@ -203,31 +200,31 @@ async function takeAll(): Promise<void> {
         </button>
       </template>
 
-      <span v-if="locked && !hasLoot" class="text-xs text-amber-300">Заперт: нужен ключ.</span>
+      <span v-if="locked && !hasLoot" class="text-xs text-warn-ink">Заперт: нужен ключ.</span>
     </div>
 
-    <p v-if="!hasLoot" class="mt-2 text-xs text-stone-500">
+    <p v-if="!hasLoot" class="mt-2 text-xs text-muted-dim">
       Мимик выглядит как сундук. Удар начнёт бой, если он живой, и только попортит оружие, если
       сундук обычный.
     </p>
 
-    <p v-if="deadMimic && !hasLoot" class="mt-1 text-xs text-stone-500">
+    <p v-if="deadMimic && !hasLoot" class="mt-1 text-xs text-muted-dim">
       Здесь лежит лут мёртвого мимика.
     </p>
 
     <div v-if="hasLoot" class="mt-2 space-y-1">
-      <p v-if="lootItems.length === 0" class="text-sm text-stone-500">Пусто.</p>
+      <p v-if="lootItems.length === 0" class="text-sm text-muted-dim">Пусто.</p>
 
       <ul v-else class="space-y-1">
         <li
           v-for="item in lootItems"
           :key="item.id ?? item.name"
-          class="flex items-center justify-between gap-2 rounded bg-stone-900/60 px-2 py-1"
+          class="flex items-center justify-between gap-2 rounded bg-panel/60 px-2 py-1"
         >
-          <span class="min-w-0 flex-1 truncate text-sm text-stone-200">{{ item.name }}</span>
+          <span class="min-w-0 flex-1 truncate text-sm text-ink-soft">{{ item.name }}</span>
           <button
             type="button"
-            class="rounded border border-stone-700 px-2 py-0.5 text-xs text-stone-200 hover:border-stone-500 hover:text-white disabled:opacity-40"
+            class="rounded border border-line-strong px-2 py-0.5 text-xs text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-40"
             :disabled="busy"
             @click="take(item)"
           >
@@ -239,7 +236,7 @@ async function takeAll(): Promise<void> {
       <button
         v-if="lootItems.length > 0"
         type="button"
-        class="rounded border border-stone-700 px-3 py-1 text-xs text-stone-200 hover:border-stone-500 hover:text-white disabled:opacity-40"
+        class="rounded border border-line-strong px-3 py-1 text-xs text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-40"
         :disabled="busy"
         @click="takeAll"
       >

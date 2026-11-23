@@ -13,13 +13,13 @@ const stats = computed<string[]>(() => describeStats(props.item))
 </script>
 
 <template>
-  <div class="rounded border border-stone-800 bg-stone-900/50 px-3 py-2">
+  <div class="rounded border border-line bg-panel/50 px-3 py-2">
     <div class="flex flex-wrap items-start gap-x-3 gap-y-2">
       <EntityArt kind="item" :name="item.name" />
 
       <div class="min-w-0 grow basis-24">
-        <p class="text-sm break-words text-stone-100">{{ item.name }}</p>
-        <p v-if="stats.length > 0" class="text-xs text-stone-500">{{ stats.join(' · ') }}</p>
+        <p class="text-sm break-words text-ink">{{ item.name }}</p>
+        <p v-if="stats.length > 0" class="text-xs text-muted-dim">{{ stats.join(' · ') }}</p>
       </div>
 
       <!-- Действия идут справа от названия. Если карточке есть что разделить

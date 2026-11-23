@@ -122,7 +122,7 @@ async function travel(room: MapRoom): Promise<void> {
 <template>
   <div
     v-if="open"
-    class="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-black/70 p-4"
+    class="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-overlay/70 p-4"
     @click.self="close"
   >
     <div
@@ -130,52 +130,48 @@ async function travel(room: MapRoom): Promise<void> {
       role="dialog"
       aria-modal="true"
       aria-labelledby="map-title"
-      class="mt-12 w-full max-w-md rounded border border-stone-700 bg-stone-900 p-4"
+      class="mt-12 w-full max-w-md rounded border border-line-strong bg-panel p-4"
     >
       <div class="flex items-center justify-between gap-2">
         <h2 id="map-title" class="text-lg font-semibold">Карта</h2>
         <button
           ref="closeButton"
           type="button"
-          class="text-xs text-stone-400 hover:text-white"
+          class="text-xs text-muted hover:text-strong"
           @click="close"
         >
           закрыть
         </button>
       </div>
 
-      <p v-if="errorText" class="mt-3 text-sm text-red-300">{{ errorText }}</p>
-      <p v-else-if="mapQuery.isPending.value" class="mt-3 text-sm text-stone-400">
-        Загружаю карту…
-      </p>
+      <p v-if="errorText" class="mt-3 text-sm text-danger-ink">{{ errorText }}</p>
+      <p v-else-if="mapQuery.isPending.value" class="mt-3 text-sm text-muted">Загружаю карту…</p>
 
       <ul v-else class="mt-3 max-h-96 space-y-1 overflow-y-auto">
         <li v-for="room in rooms" :key="room.number">
           <button
             type="button"
-            class="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-sm hover:bg-stone-800 disabled:opacity-60"
+            class="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-sm hover:bg-active disabled:opacity-60"
             :disabled="busy || inBattle || room.number === currentNumber"
             @click="travel(room)"
           >
-            <span class="w-8 shrink-0 font-mono text-xs text-stone-500">{{ room.number }}</span>
+            <span class="w-8 shrink-0 font-mono text-xs text-muted-dim">{{ room.number }}</span>
             <span
               class="flex-1 truncate"
-              :class="room.number === currentNumber ? 'text-emerald-300' : 'text-stone-200'"
+              :class="room.number === currentNumber ? 'text-ok-ink' : 'text-ink-soft'"
             >
               {{ room.name }}
             </span>
-            <span v-if="room.number === currentNumber" class="text-xs text-emerald-400">
-              здесь
-            </span>
+            <span v-if="room.number === currentNumber" class="text-xs text-ok-ink"> здесь </span>
           </button>
         </li>
       </ul>
 
-      <p v-if="inBattle" class="mt-3 text-xs text-amber-300">
+      <p v-if="inBattle" class="mt-3 text-xs text-warn-ink">
         Идёт бой: перейти в другую комнату нельзя, пока враг жив.
       </p>
 
-      <p class="mt-3 text-xs text-stone-500">
+      <p class="mt-3 text-xs text-muted-dim">
         Не все комнаты на карте уже исхожены: в незнакомую войти не выйдет. Стартовый зал тоже
         закрыт — вернуться в него нельзя.
       </p>

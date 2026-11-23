@@ -53,8 +53,8 @@ const message = computed(() => {
 
 const tone = computed(() =>
   outcome.value === 'won'
-    ? 'border-emerald-900 bg-emerald-950/30 text-emerald-100'
-    : 'border-red-900 bg-red-950/30 text-red-100',
+    ? 'border-ok-line bg-ok-soft/30 text-ok-ink'
+    : 'border-danger-line bg-danger-soft/30 text-danger-ink',
 )
 
 const errorText = computed(() => {
@@ -68,11 +68,11 @@ async function goTo(name: 'sessions' | 'saves'): Promise<void> {
 </script>
 
 <template>
-  <p v-if="isPending" class="text-sm text-stone-400">Загружаю итог партии…</p>
+  <p v-if="isPending" class="text-sm text-muted">Загружаю итог партии…</p>
 
   <section
     v-else-if="isError"
-    class="rounded border border-red-900 bg-red-950/40 p-4 text-sm text-red-200"
+    class="rounded border border-danger-line bg-danger-soft/40 p-4 text-sm text-danger-ink"
   >
     <p>Не удалось загрузить итог партии.</p>
     <p class="mt-2 text-xs opacity-80">{{ errorText }}</p>
@@ -85,28 +85,28 @@ async function goTo(name: 'sessions' | 'saves'): Promise<void> {
     </div>
 
     <div v-if="info" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      <div class="rounded border border-stone-800 bg-stone-900/60 px-4 py-3">
-        <p class="text-xs tracking-wide text-stone-500 uppercase">комната</p>
-        <p class="mt-1 font-mono text-stone-100">{{ info.room.number }}</p>
+      <div class="rounded border border-line bg-panel/60 px-4 py-3">
+        <p class="text-xs tracking-wide text-muted-dim uppercase">комната</p>
+        <p class="mt-1 font-mono text-ink">{{ info.room.number }}</p>
       </div>
-      <div class="rounded border border-stone-800 bg-stone-900/60 px-4 py-3">
-        <p class="text-xs tracking-wide text-stone-500 uppercase">здоровье</p>
-        <p class="mt-1 font-mono text-stone-100">{{ info.currentHealth }}/{{ info.maxHealth }}</p>
+      <div class="rounded border border-line bg-panel/60 px-4 py-3">
+        <p class="text-xs tracking-wide text-muted-dim uppercase">здоровье</p>
+        <p class="mt-1 font-mono text-ink">{{ info.currentHealth }}/{{ info.maxHealth }}</p>
       </div>
-      <div class="rounded border border-stone-800 bg-stone-900/60 px-4 py-3">
-        <p class="text-xs tracking-wide text-stone-500 uppercase">монеты</p>
-        <p class="mt-1 font-mono text-stone-100">{{ info.coins }}</p>
+      <div class="rounded border border-line bg-panel/60 px-4 py-3">
+        <p class="text-xs tracking-wide text-muted-dim uppercase">монеты</p>
+        <p class="mt-1 font-mono text-ink">{{ info.coins }}</p>
       </div>
-      <div class="rounded border border-stone-800 bg-stone-900/60 px-4 py-3">
-        <p class="text-xs tracking-wide text-stone-500 uppercase">ключи</p>
-        <p class="mt-1 font-mono text-stone-100">{{ info.keys }}</p>
+      <div class="rounded border border-line bg-panel/60 px-4 py-3">
+        <p class="text-xs tracking-wide text-muted-dim uppercase">ключи</p>
+        <p class="mt-1 font-mono text-ink">{{ info.keys }}</p>
       </div>
     </div>
 
     <div class="flex flex-wrap gap-3">
       <button
         type="button"
-        class="rounded bg-stone-200 px-4 py-2 text-sm font-medium text-stone-900 hover:bg-white"
+        class="rounded bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:bg-primary-hover"
         @click="goTo('sessions')"
       >
         Новая игра
@@ -114,14 +114,14 @@ async function goTo(name: 'sessions' | 'saves'): Promise<void> {
 
       <button
         type="button"
-        class="rounded border border-stone-700 px-4 py-2 text-sm text-stone-200 hover:border-stone-500 hover:text-white"
+        class="rounded border border-line-strong px-4 py-2 text-sm text-ink-soft hover:border-line-hover hover:text-strong"
         @click="goTo('saves')"
       >
         Загрузить сохранение
       </button>
     </div>
 
-    <p class="text-xs text-stone-500">
+    <p class="text-xs text-muted-dim">
       Начать заново можно двумя способами: новая игра создаёт другое подземелье, а загрузка
       начального сохранения возвращает в то же самое.
     </p>

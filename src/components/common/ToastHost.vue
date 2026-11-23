@@ -14,9 +14,9 @@ const ui = useUiStore()
       :key="toast.id"
       class="pointer-events-auto w-full max-w-md rounded border px-4 py-3 text-sm shadow-lg"
       :class="{
-        'border-red-800 bg-red-950 text-red-100': toast.kind === 'error',
-        'border-emerald-800 bg-emerald-950 text-emerald-100': toast.kind === 'success',
-        'border-stone-700 bg-stone-900 text-stone-100': toast.kind === 'info',
+        'border-danger-line bg-danger-soft text-danger-ink': toast.kind === 'error',
+        'border-ok-line bg-ok-soft text-ok-ink': toast.kind === 'success',
+        'border-line-strong bg-panel text-ink': toast.kind === 'info',
       }"
       role="status"
     >

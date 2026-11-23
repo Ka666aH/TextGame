@@ -51,15 +51,15 @@ watch(available, (groups) => {
 })
 
 function chipClass(active: boolean): string {
-  return active ? 'bg-stone-700 text-white' : 'text-stone-400 hover:text-white'
+  return active ? 'bg-active text-strong' : 'text-muted hover:text-strong'
 }
 </script>
 
 <template>
-  <section class="rounded border border-stone-800 bg-stone-900/40 p-3">
-    <h2 class="mb-2 text-xs tracking-wide text-stone-500 uppercase">инвентарь</h2>
+  <section class="rounded border border-line bg-panel/40 p-3">
+    <h2 class="mb-2 text-xs tracking-wide text-muted-dim uppercase">инвентарь</h2>
 
-    <p v-if="items.length === 0" class="text-sm text-stone-500">Пусто.</p>
+    <p v-if="items.length === 0" class="text-sm text-muted-dim">Пусто.</p>
 
     <template v-else>
       <div v-if="available.length > 1" class="mb-2 flex flex-wrap gap-1">
@@ -84,7 +84,7 @@ function chipClass(active: boolean): string {
         </button>
       </div>
 
-      <p v-if="visible.length === 0" class="text-sm text-stone-500">Ничего подходящего.</p>
+      <p v-if="visible.length === 0" class="text-sm text-muted-dim">Ничего подходящего.</p>
 
       <ul v-else class="space-y-2">
         <li v-for="(item, index) in visible" :key="item.id ?? index">

@@ -55,6 +55,16 @@ export const CHESTPLATE_NAMES: readonly string[] = [ITEM_NAMES.leatherVest, ITEM
 /** Кто бьёт. Используется для раскраски журнала боя, не для логики. */
 export const PLAYER_NAME = 'ИГРОК'
 
+/** Враги. Нужны только для иконок: другой привязки к имени у них нет. */
+export const ENEMY_NAMES = {
+  deadman: 'МЕРТВЯК',
+  ghost: 'ПРИЗРАК',
+  lich: 'ЛИЧ',
+  mimic: 'МИМИК',
+  skeletor: 'СКЕЛЕТОР',
+  skeletorArcher: 'СКЕЛЕТОР-ЛУЧНИК',
+} as const
+
 /** Имя цели в журнале боя при ударе по обычному сундуку. */
 export const CHEST_TARGET_NAME = 'СУНДУК'
 
