@@ -22,14 +22,15 @@ const { data: me } = useMeQuery()
       с любого экрана — и до входа тоже, поэтому подвал не зависит от `me`,
       в отличие от шапки.
     -->
-    <footer
-      class="mx-auto mt-auto flex w-full max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 pb-6 text-xs text-muted-dim"
-    >
-      <span>Подземелье</span>
-
-      <nav class="ml-auto flex gap-4">
-        <RouterLink to="/credits" class="underline hover:text-ink">Иконки</RouterLink>
-      </nav>
+    <footer class="mx-auto mt-auto w-full max-w-7xl px-4 pb-6 text-xs text-muted-dim">
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line pt-4">
+        <nav class="ml-auto flex flex-wrap gap-x-5 gap-y-2">
+          <a class="underline hover:text-ink" href="https://github.com/Ka666aH">
+            Автор — Ka666aH
+          </a>
+          <RouterLink to="/credits" class="underline hover:text-ink">Иконки</RouterLink>
+        </nav>
+      </div>
     </footer>
 
     <ToastHost />

@@ -21,8 +21,11 @@ test('авторы иконок открываются до входа', async (
 
   await expect(page).toHaveURL(/\/credits$/)
   await expect(page.getByRole('heading', { name: 'Иконки' })).toBeVisible()
-  // Подписи источников — то, ради чего страница существует.
-  await expect(page.getByRole('link', { name: 'Flaticon' })).toBeVisible()
+  // Подписи источников — то, ради чего страница существует. Имена ссылок
+  // в Playwright ищутся по подстроке, поэтому «Flaticon» без `exact` ловит
+  // ещё и пять «www.flaticon.com» в подписях авторов.
+  await expect(page.getByRole('link', { name: 'Flaticon', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'madness', exact: true })).toBeVisible()
   await expect(page.getByText('Icons made by Delapouite, Lorc and Willdabeast')).toBeVisible()
 })
 
