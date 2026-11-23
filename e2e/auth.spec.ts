@@ -10,6 +10,20 @@ test('без куки показывается экран входа', async ({ 
   await expect(page).toHaveURL(/\/login$/)
   await expect(page.getByRole('heading', { name: 'Подземелье' })).toBeVisible()
   await expect(page.getByLabel('Логин')).toBeVisible()
+  // Подвал доступен до входа: лицензии иконок должны читаться без аккаунта.
+  await expect(page.getByRole('link', { name: 'Иконки' })).toBeVisible()
+})
+
+test('авторы иконок открываются до входа', async ({ page }) => {
+  await mockApi(page, { 'GET /auth/me': meAnonymous() })
+
+  await page.goto('/credits')
+
+  await expect(page).toHaveURL(/\/credits$/)
+  await expect(page.getByRole('heading', { name: 'Иконки' })).toBeVisible()
+  // Подписи источников — то, ради чего страница существует.
+  await expect(page.getByRole('link', { name: 'Flaticon' })).toBeVisible()
+  await expect(page.getByText('Icons made by Delapouite, Lorc and Willdabeast')).toBeVisible()
 })
 
 test('вход ведёт к списку игр', async ({ page }) => {

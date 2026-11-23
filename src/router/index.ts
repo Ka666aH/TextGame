@@ -7,6 +7,8 @@ declare module 'vue-router' {
   interface RouteMeta {
     /** Экран бессмысленен без активной сессии: сервер ответил бы 403. */
     requiresSession?: boolean
+    /** Экран открыт и до входа: ссылка стоит в подвале приложения. */
+    public?: boolean
   }
 }
 
@@ -15,6 +17,13 @@ const StubView = () => import('../views/StubView.vue')
 
 const routes: RouteRecordRaw[] = [
   { path: '/login', name: 'login', component: () => import('../views/LoginView.vue') },
+  // Авторы иконок открыты и без входа: на них ссылается подвал на каждом экране.
+  {
+    path: '/credits',
+    name: 'credits',
+    component: () => import('../views/CreditsView.vue'),
+    meta: { public: true },
+  },
   { path: '/', name: 'root', component: StubView, props: { title: 'Загрузка' } },
   { path: '/sessions', name: 'sessions', component: () => import('../views/SessionsView.vue') },
   {
@@ -50,6 +59,9 @@ const router = createRouter({
  */
 router.beforeEach(async (to) => {
   const me = await queryClient.ensureQueryData(meQueryOptions())
+
+  // Служебные экраны доступны и без входа: ссылка на них — в подвале.
+  if (to.meta.public === true) return true
 
   if (me === null) {
     return to.name === 'login' ? true : { name: 'login' }
