@@ -295,7 +295,7 @@ async function handleQuickSave(): Promise<void> {
 
             <button
               type="button"
-              class="rounded border border-line-strong p-2 text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-40"
+              class="ml-auto rounded border border-line-strong p-2 text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-40"
               :disabled="busy"
               aria-label="Сохранить игру"
               title="Сохранить игру"
