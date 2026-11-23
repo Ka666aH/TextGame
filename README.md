@@ -18,7 +18,7 @@ Vue 3 + TypeScript (SFC, `<script setup>`), Vite, Vue Router, TanStack Query д�
 docker compose up --build   # первый запуск собирает фронт; дальше — docker compose up
 ```
 
-Поднимаются фронт (nginx со статикой), API `ka666ah/text-game-api:1.1.0`, Postgres и Redis. Сайт — `http://localhost:8080`; порт и переменные окружения — в `.env`, описание стека — в `notes/deploy.md`.
+Поднимаются фронт (nginx со статикой), API (пин образа — `TEXTGAME_API_IMAGE` в `.env`), Postgres и Redis. Сайт — `http://localhost:8080`; порт и переменные окружения — в `.env`, описание стека — в `notes/deploy.md`.
 
 Для разработки фронта нужен поднятый бэкенд: `docker compose up` в его репозитории, дальше `http://localhost:5000`:
 

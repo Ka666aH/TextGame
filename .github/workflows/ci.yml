@@ -46,9 +46,10 @@ jobs:
 
       - run: pnpm build
 
-  # e2e против собранного фронта (preview :4173) и бэкенда из образа —
-  # той же версии, что стоит в docker-compose.yml. Исходники бэкенда
-  # в другом репо, поэтому в CI фронта они не собираются.
+  # e2e против собранного фронта (preview :4173) и бэкенда из образа.
+  # Пин образа — единственный источник в .env; docker-compose.yml читает
+  # его же, поэтому CI всегда проверяет ту связку, что деплоится.
+  # Исходники бэкенда в другом репо, поэтому в CI фронта они не собираются.
   e2e:
     runs-on: ubuntu-latest
 
@@ -77,12 +78,19 @@ jobs:
           --health-timeout 5s
           --health-retries 15
 
-    env:
-      # Держать синхронным с пином образа в docker-compose.yml.
-      API_IMAGE: ka666ah/text-game-api:1.1.0
-
     steps:
       - uses: actions/checkout@v7
+
+      # Пин образа — в .env, его же читает docker-compose.yml.
+      # Проверяем сразу после checkout: без пина падаем рано, до тяжёлых шагов.
+      - name: Read API image pin
+        run: |
+          img="$(sed -n 's/^TEXTGAME_API_IMAGE=//p' .env)"
+          if [ -z "$img" ]; then
+            echo "::error::В .env нет строки TEXTGAME_API_IMAGE=..."
+            exit 1
+          fi
+          echo "TEXTGAME_API_IMAGE=$img" >> "$GITHUB_ENV"
 
       - uses: pnpm/action-setup@v6
         with:
@@ -113,7 +121,7 @@ jobs:
             -e "ConnectionStrings__PostgreSQL=Host=localhost;Port=5432;Database=text_game_db;Username=dev_user;Password=dev_password" \
             -e ConnectionStrings__Redis=localhost:6379 \
             -e JwtSettings__Secret=ci-secret-key-at-least-32-characters-long \
-            "$API_IMAGE"
+            "$TEXTGAME_API_IMAGE"
           timeout 90 bash -c 'until curl -sf http://localhost:5000/health; do sleep 1; done'
 
       # playwright.config сам поднимает preview: в CI reuseExistingServer выключен.
