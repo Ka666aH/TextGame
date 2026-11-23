@@ -29,9 +29,7 @@ import { FLATICON_AUTHORS, GAME_ICONS_AUTHORS } from '../lib/credits'
           <a class="underline" :href="author.url">{{ author.name }}</a>
         </li>
       </ul>
-      <p class="mt-2 text-muted">
-        Часть иконок изменена.
-      </p>
+      <p class="mt-2 text-muted">Часть иконок изменена.</p>
     </section>
 
     <section class="space-y-2">
@@ -45,8 +43,10 @@ import { FLATICON_AUTHORS, GAME_ICONS_AUTHORS } from '../lib/credits'
       </ul>
     </section>
 
-    <RouterLink to="/login"
-      class="inline-block rounded border border-line-strong px-4 py-2 text-ink-soft hover:border-line-hover hover:text-strong">
+    <RouterLink
+      to="/login"
+      class="inline-block rounded border border-line-strong px-4 py-2 text-ink-soft hover:border-line-hover hover:text-strong"
+    >
       Вернуться
     </RouterLink>
   </section>
