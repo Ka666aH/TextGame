@@ -91,8 +91,6 @@ export interface InventoryItem {
   maxHealthBoost?: number | null
   currentHealthBoost?: number | null
   isClosed?: boolean
-  /** Только у сундуков: заперт ли он (с 1.2.0). */
-  isLocked?: boolean
 }
 
 /** Исход партии. Сервер отдаёт строку в нижнем регистре, `null` — партия идёт. */

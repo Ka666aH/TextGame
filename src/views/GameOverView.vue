@@ -120,10 +120,5 @@ async function goTo(name: 'sessions' | 'saves'): Promise<void> {
         Загрузить сохранение
       </button>
     </div>
-
-    <p class="text-xs text-muted-dim">
-      Начать заново можно двумя способами: новая игра создаёт другое подземелье, а загрузка
-      начального сохранения возвращает в то же самое.
-    </p>
   </section>
 </template>

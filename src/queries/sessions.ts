@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 
 import { createSession, deleteSession, fetchSessions, selectSession } from '../api/sessions'
+import { resetGameCaches } from './game'
 import { queryKeys } from './keys'
 
 export function useSessionsQuery() {
@@ -20,11 +21,7 @@ export function useCreateSessionMutation() {
   return useMutation({
     mutationFn: createSession,
     onSuccess: async () => {
-      client.removeQueries({ queryKey: queryKeys.state })
-      client.removeQueries({ queryKey: queryKeys.map })
-      client.removeQueries({ queryKey: queryKeys.roomItemsAll })
-      // Текст прошлого исхода к новой игре отношения не имеет.
-      client.removeQueries({ queryKey: queryKeys.gameOver })
+      resetGameCaches()
       await Promise.all([
         client.invalidateQueries({ queryKey: queryKeys.me }),
         client.invalidateQueries({ queryKey: queryKeys.sessions }),
@@ -42,10 +39,7 @@ export function useSelectSessionMutation() {
   return useMutation({
     mutationFn: selectSession,
     onSuccess: async () => {
-      client.removeQueries({ queryKey: queryKeys.state })
-      client.removeQueries({ queryKey: queryKeys.map })
-      client.removeQueries({ queryKey: queryKeys.roomItemsAll })
-      client.removeQueries({ queryKey: queryKeys.gameOver })
+      resetGameCaches()
       await client.invalidateQueries({ queryKey: queryKeys.me })
     },
   })

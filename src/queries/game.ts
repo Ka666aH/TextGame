@@ -21,11 +21,10 @@ import {
   useItem,
 } from '../api/game'
 import { isBattleLogArray, isBattleWin, isGameOver } from '../api/guards'
-import { itemId } from '../api/items'
-import type { BattleWin, GameInfo, GameOver, InventoryItem } from '../api/types'
+import type { BattleWin, GameInfo, GameOver } from '../api/types'
 import { isPlainChestHit } from '../lib/chests'
 import { brokenEquipment } from '../lib/equipment'
-import { appendBattleLog } from '../composables/game'
+import { appendBattleLog, clearBattleLog } from '../composables/game'
 import { useUiStore } from '../stores/ui'
 import { queryClient } from './client'
 import { queryKeys } from './keys'
@@ -77,6 +76,26 @@ export function rememberGameOver(gameOver: GameOver): void {
  * останется прежний запертый сундук, который просит ключ.
  */
 let mimicBattle = false
+
+/**
+ * Сбрасывает всё, что относится к конкретной партии: снимок состояния, карту,
+ * списки предметов комнат, лут сундуков, текст исхода и журнал боя.
+ *
+ * Нужен при смене игры и при загрузке сохранения. Без сброса лута сундука
+ * получается ровно та ошибка, которую видно глазами: сундук открыли, загрузили
+ * сохранение, вернулись в комнату — а он «открыт» из кэша, хотя сервер считает
+ * его запертым, и «Обыскать заново» этого не исправляет (обыск перечитывает
+ * комнату, но не лут).
+ */
+export function resetGameCaches(): void {
+  queryClient.removeQueries({ queryKey: queryKeys.state })
+  queryClient.removeQueries({ queryKey: queryKeys.map })
+  queryClient.removeQueries({ queryKey: queryKeys.roomItemsAll })
+  queryClient.removeQueries({ queryKey: queryKeys.chestItemsAll })
+  queryClient.removeQueries({ queryKey: queryKeys.gameOver })
+  clearBattleLog()
+  mimicBattle = false
+}
 
 export function useTakeRoomItemMutation() {
   return useMutation({
@@ -315,24 +334,11 @@ export function useOpenChestMutation() {
   })
 }
 
-/**
- * Отпирание. С 1.2.0 ключ тратится только с запертого сундука, а в ответе
- * приходит сам сундук — им и обновляем список комнаты, иначе кнопка осталась
- * бы прежней. Состояние перечитываем ради счётчика ключей.
- */
+/** Отпирание тратит ключ, поэтому счётчик ключей надо перечитать. */
 export function useUnlockChestMutation() {
   return useMutation({
     mutationFn: unlockChest,
-    onSuccess: async (chest) => {
-      const roomNumber = currentRoomNumber()
-      const chestId = itemId(chest)
-
-      if (roomNumber !== null && chestId !== null) {
-        queryClient.setQueryData<InventoryItem[]>(queryKeys.roomItems(roomNumber), (items) =>
-          items?.map((item) => (itemId(item) === chestId ? chest : item)),
-        )
-      }
-
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.state })
     },
   })

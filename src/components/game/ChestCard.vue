@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router'
 import { CODE } from '../../api/codes'
 import { isApiError } from '../../api/errors'
 import { isBattleWin, isGameOver } from '../../api/guards'
-import { isDeadMimic, itemId } from '../../api/items'
+import { itemId } from '../../api/items'
 import type { InventoryItem } from '../../api/types'
 import { reportGameError, runGameAction, useGameBusy } from '../../composables/game'
 import { battleLogLine } from '../../lib/battle'
@@ -52,16 +52,9 @@ const hasLoot = computed(() => loot.value !== undefined)
  * возвращения в комнату, когда локального состояния уже нет.
  */
 const alreadyOpen = computed(() => props.chest.isClosed === false)
-const deadMimic = computed(() => isDeadMimic(props.chest))
 
-/**
- * Запертость отдаёт сервер (`isLocked`, с 1.2.0), поэтому «Отпереть ключом»
- * видна сразу, без пробной попытки открыть. Локальный флаг — страховка на
- * случай устаревшего списка: если `open` всё же ответил `403 LOCKED`,
- * предложение отпереть появится.
- */
-const lockedStale = ref(false)
-const locked = computed(() => props.chest.isLocked === true || lockedStale.value)
+/** Запертость в DTO не проверяется клиентом: узнаём из `403 LOCKED` на попытке открыть. */
+const locked = ref(false)
 
 async function openChest(): Promise<void> {
   const id = chestId.value
@@ -77,10 +70,10 @@ async function openChest(): Promise<void> {
       await router.push({ name: 'gameOver' })
       return
     }
-    lockedStale.value = false
+    locked.value = false
   } catch (error) {
     if (isApiError(error) && error.code === CODE.locked) {
-      lockedStale.value = true
+      locked.value = true
       return
     }
     reportGameError(error, 'Не удалось открыть сундук.')
@@ -90,8 +83,9 @@ async function openChest(): Promise<void> {
 }
 
 /**
- * Отпереть и сразу открыть. С 1.2.0 `unlock` идемпотентен — ключ тратится
- * только с запертого сундука, — но держать игрока в два клика всё равно незачем.
+ * Отпереть и сразу открыть: после удачного `unlock` второй клик незачем.
+ * С 1.2.0 ключ тратится только с запертого сундука, но на поведение это
+ * не влияет — сюда попадают лишь после `403 LOCKED`.
  */
 async function unlock(): Promise<void> {
   const id = chestId.value
@@ -103,7 +97,7 @@ async function unlock(): Promise<void> {
   )
   if (!result.ok) return
 
-  lockedStale.value = false
+  locked.value = false
   await openChest()
 }
 
@@ -211,15 +205,6 @@ async function takeAll(): Promise<void> {
 
       <span v-if="locked && !hasLoot" class="text-xs text-warn-ink">Заперт: нужен ключ.</span>
     </div>
-
-    <p v-if="!hasLoot" class="mt-2 text-xs text-muted-dim">
-      Мимик выглядит как сундук. Удар начнёт бой, если он живой, и только попортит оружие, если
-      сундук обычный.
-    </p>
-
-    <p v-if="deadMimic && !hasLoot" class="mt-1 text-xs text-muted-dim">
-      Здесь лежит лут мёртвого мимика.
-    </p>
 
     <div v-if="hasLoot" class="mt-2 space-y-1">
       <p v-if="lootItems.length === 0" class="text-sm text-muted-dim">Пусто.</p>

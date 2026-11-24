@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 
 import { createSave, deleteSave, fetchSaves, loadSave } from '../api/saves'
+import { resetGameCaches } from './game'
 import { queryKeys } from './keys'
 
 export function useSavesQuery() {
@@ -24,17 +25,14 @@ export function useCreateSaveMutation() {
 /**
  * Загрузка сохранения заменяет состояние целиком, поэтому игровой кэш
  * удаляем, а не инвалидируем: иначе на экране мелькнёт комната из прошлой
- * линии подземелья.
+ * линии подземелья, а лут сундука останется от прежней партии.
  */
 export function useLoadSaveMutation() {
   const client = useQueryClient()
   return useMutation({
     mutationFn: loadSave,
     onSuccess: async () => {
-      client.removeQueries({ queryKey: queryKeys.state })
-      client.removeQueries({ queryKey: queryKeys.map })
-      client.removeQueries({ queryKey: queryKeys.roomItemsAll })
-      client.removeQueries({ queryKey: queryKeys.gameOver })
+      resetGameCaches()
       await client.invalidateQueries({ queryKey: queryKeys.saves })
     },
   })

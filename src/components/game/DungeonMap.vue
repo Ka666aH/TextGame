@@ -171,18 +171,12 @@ async function travel(room: MapRoom): Promise<void> {
               {{ room.name }}
             </span>
             <span v-if="room.number === currentNumber" class="text-xs text-ok-ink"> здесь </span>
-            <span v-else-if="!room.isDiscovered" class="text-xs text-muted-dim"> не открыта </span>
           </button>
         </li>
       </ul>
 
       <p v-if="inBattle" class="mt-3 text-xs text-warn-ink">
         Идёт бой: перейти в другую комнату нельзя, пока враг жив.
-      </p>
-
-      <p class="mt-3 text-xs text-muted-dim">
-        Неоткрытые комнаты отмечены — войти в них нельзя, пока не дойдёшь до них своим ходом.
-        Пройденные открыты, включая стартовый зал: вернуться в него можно.
       </p>
     </div>
   </div>

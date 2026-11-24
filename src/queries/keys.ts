@@ -18,4 +18,6 @@ export const queryKeys = {
 
   /** Лут сундука: своя запись на каждый сундук. */
   chestItems: (chestId: number) => ['chestItems', chestId] as const,
+  /** Общий префикс лута сундуков — сброс всего сразу при смене партии. */
+  chestItemsAll: ['chestItems'] as const,
 }
