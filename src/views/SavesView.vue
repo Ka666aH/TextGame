@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { CODE } from '../api/codes'
@@ -10,7 +10,6 @@ import type { Save } from '../api/types'
 import { formatDateTime, newestFirst } from '../lib/format'
 import { validateOptionalName } from '../lib/validation'
 import { queryClient } from '../queries/client'
-import { stateQueryOptions } from '../queries/game'
 import { queryKeys } from '../queries/keys'
 import {
   useCreateSaveMutation,
@@ -37,14 +36,6 @@ const nameError = ref<string | null>(null)
 
 const saves = computed<Save[]>(() => newestFirst(savesData.value ?? []))
 const isEmpty = computed(() => !savesPending.value && saves.value.length === 0)
-
-onMounted(() => {
-  // `POST /saves` берёт состояние из Redis, а `GET /state` как раз кладёт его
-  // туда (`SessionProvider.GetAsync`). Без прогрева сохранение сразу после
-  // переключения на сессию ответило бы `404 SESSION_NOT_FOUND`, хотя игра
-  // на экране есть: Redis пуст, потому что игровой экран ещё не открывали.
-  void queryClient.ensureQueryData(stateQueryOptions()).catch(() => undefined)
-})
 
 function reportError(error: unknown, fallback: string): void {
   if (!isApiError(error)) {

@@ -30,9 +30,8 @@ import { queryClient } from './client'
 import { queryKeys } from './keys'
 
 /**
- * Опции вынесены отдельно: их использует не только экран игры, но и прогрев
- * кэша на экране сохранений. Там состояние не показывается — оно нужно, чтобы
- * `GET /state` положил его в Redis перед `POST /saves`.
+ * Опции вынесены отдельно от `useStateQuery`: так их можно позвать из
+ * `ensureQueryData` и после запроса прочитать снимок из кэша.
  */
 export function stateQueryOptions() {
   return {
