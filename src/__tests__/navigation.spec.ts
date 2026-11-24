@@ -7,11 +7,11 @@ describe('canGoBack', () => {
     expect(canGoBack(0)).toBe(false)
   })
 
-  it('запрещает возврат в стартовую комнату: сервер не считает её открытой', () => {
-    expect(canGoBack(1)).toBe(false)
+  it('разрешает возврат из первой комнаты в стартовую: она открыта по умолчанию', () => {
+    expect(canGoBack(1)).toBe(true)
   })
 
-  it('разрешает возврат из любой комнаты после второй', () => {
+  it('разрешает возврат из любой комнаты дальше', () => {
     expect(canGoBack(2)).toBe(true)
     expect(canGoBack(12)).toBe(true)
   })
