@@ -4,7 +4,6 @@ import {
   isBattleLog,
   isBattleLogArray,
   isBattleWin,
-  isChestDto,
   isCount,
   isGameInfo,
   isGameOver,
@@ -24,6 +23,8 @@ const gameInfo = {
   coins: 0,
   keys: 0,
   inventory: [],
+  isGameStarted: true,
+  result: null,
 }
 
 const battleLog = {
@@ -38,7 +39,10 @@ const battleLog = {
 }
 
 const gameOver = { message: 'Вы нашли выход и выбрались наружу.', gameInfo }
+/** Форма 1.1.0: победы в бою ещё без состояния. */
 const battleWin = { message: 'КРЫСА повержен.', battleLog }
+/** Форма 1.2.0: у победы в бою есть и `gameInfo`, поэтому гарды легко спутать. */
+const battleWinWithInfo = { message: 'КРЫСА повержен.', battleLog, gameInfo }
 
 describe('isRecord', () => {
   it('принимает обычный объект', () => {
@@ -63,12 +67,18 @@ describe('различение конца игры и победы в бою', (
     expect(isBattleWin(gameOver)).toBe(false)
   })
 
-  it('BattleWin узнаётся по battleLog', () => {
+  it('BattleWin узнаётся по battleLog — в обеих формах', () => {
     expect(isBattleWin(battleWin)).toBe(true)
+    expect(isBattleWin(battleWinWithInfo)).toBe(true)
   })
 
   it('BattleWin не считается концом игры', () => {
     expect(isGameOver(battleWin)).toBe(false)
+  })
+
+  it('BattleWin с gameInfo — всё ещё не конец игры: его выдаёт battleLog', () => {
+    // Без этой проверки каждая победа в бою уходит на экран исхода.
+    expect(isGameOver(battleWinWithInfo)).toBe(false)
   })
 })
 
@@ -79,6 +89,7 @@ describe('журнал боя', () => {
 
   it('победа в бою не считается одиночным ударом: у неё есть message', () => {
     expect(isBattleLog(battleWin)).toBe(false)
+    expect(isBattleLog(battleWinWithInfo)).toBe(false)
   })
 
   it('конец игры не считается ударом', () => {
@@ -116,7 +127,9 @@ describe('состояние и комната', () => {
 
 describe('массивы и примитивы', () => {
   it('список комнат карты', () => {
-    expect(isMapRoomArray([{ number: 0, name: 'СТАРТОВАЯ КОМНАТА' }])).toBe(true)
+    expect(isMapRoomArray([{ number: 0, name: 'СТАРТОВАЯ КОМНАТА', isDiscovered: true }])).toBe(
+      true,
+    )
     expect(isMapRoomArray(gameInfo)).toBe(false)
   })
 
@@ -124,11 +137,6 @@ describe('массивы и примитивы', () => {
     expect(isInventoryItemArray([{ name: 'КЛЮЧ', description: '' }])).toBe(true)
     expect(isInventoryItemArray([])).toBe(true)
     expect(isInventoryItemArray({})).toBe(false)
-  })
-
-  it('сундук отличается от обычного предмета отсутствием cost', () => {
-    expect(isChestDto({ id: 1, name: 'СУНДУК', description: '', isClosed: true })).toBe(true)
-    expect(isChestDto({ id: 1, name: 'КЛЮЧ', description: '', cost: 5 })).toBe(false)
   })
 
   it('голое число для coins и keys', () => {

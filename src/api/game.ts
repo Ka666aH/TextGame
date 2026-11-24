@@ -2,7 +2,6 @@ import { api } from './http'
 import type {
   BattleLog,
   BattleWin,
-  ChestDto,
   GameInfo,
   GameOver,
   InventoryItem,
@@ -136,9 +135,12 @@ export async function openChest(chestId: number): Promise<MaybeGameOver<Inventor
   return await api<MaybeGameOver<InventoryItem[]>>(chestPath(chestId, '/open'), { method: 'POST' })
 }
 
-/** Отпереть: всегда тратит ключ. Отдаёт сам сундук — без `cost`. */
-export async function unlockChest(chestId: number): Promise<ChestDto> {
-  return await api<ChestDto>(chestPath(chestId, '/unlock'), { method: 'POST' })
+/**
+ * Отпереть. С 1.2.0 идемпотентно: ключ тратится только с запертого сундука,
+ * неверный `id` его не съедает. Отдаёт сам сундук в форме `InventoryItem`.
+ */
+export async function unlockChest(chestId: number): Promise<InventoryItem> {
+  return await api<InventoryItem>(chestPath(chestId, '/unlock'), { method: 'POST' })
 }
 
 /** Лут уже открытого сундука: `403 LOCKED` / `403 CLOSED`, если открыть не успели. */

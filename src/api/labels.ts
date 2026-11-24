@@ -15,6 +15,20 @@ export const ROOM_NAMES = {
   exit: 'ВЫХОД',
 } as const
 
+/**
+ * Вид комнаты. С 1.2.0 сервер отдаёт его полем `kind`, поэтому имя нужно
+ * только для арта и подписи, а ветвиться надо по этим значениям.
+ */
+export const ROOM_KINDS = {
+  start: 'start',
+  empty: 'empty',
+  small: 'small',
+  big: 'big',
+  shop: 'shop',
+  exit: 'exit',
+  unknown: 'unknown',
+} as const
+
 export const ITEM_NAMES = {
   chest: 'СУНДУК',
   deadMimic: 'МЁРТВЫЙ МИМИК',

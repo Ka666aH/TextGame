@@ -15,22 +15,21 @@ export interface Me {
 }
 
 /**
- * `seed` — 64-битное число, приходящее обычным JSON-числом.
- * Выше 2^53 точность уже потеряна, а воспроизводимости seed всё равно
- * не даёт (бой идёт на `Random.Shared`). Поэтому значение не читается
- * и не показывается. Seed передаётся только на вход, строкой.
+ * `seed` приходит **строкой**: сервер генерирует 64-битное значение, а
+ * JSON-число теряет точность выше 2^53. Строку показываем как есть и
+ * возвращаем в `?seed=` без разбора — так круг «увидел → ввёл» замыкается.
  */
 export interface Session {
   id: string
   name: string
-  seed: number
+  seed: string
   createdAt: string
 }
 
 export interface CreateSessionResponse {
   sessionId: string
   sessionName: string
-  seed: number
+  seed: string
 }
 
 export interface SessionCurrentResponse {
@@ -51,6 +50,7 @@ export interface CreateSaveResponse {
 export interface MapRoom {
   number: number
   name: string
+  isDiscovered: boolean
 }
 
 export interface Enemy {
@@ -62,11 +62,17 @@ export interface Enemy {
   damageBlock: number
 }
 
+/** Вид комнаты. Сервер выводит его из CLR-типа, а не из названия. */
+export type RoomKind = 'start' | 'empty' | 'small' | 'big' | 'shop' | 'exit' | 'unknown'
+
 /** Ключа `enemy` нет, если врага нет. */
 export interface Room {
   number: number
   name: string
   description: string
+  /** Обыскана ли комната. Сервер помнит это на своей стороне. */
+  isSearched: boolean
+  kind: RoomKind
   enemy?: Enemy
 }
 
@@ -85,15 +91,12 @@ export interface InventoryItem {
   maxHealthBoost?: number | null
   currentHealthBoost?: number | null
   isClosed?: boolean
+  /** Только у сундуков: заперт ли он (с 1.2.0). */
+  isLocked?: boolean
 }
 
-/** Сундук после `unlock`: без `cost`, поэтому это не `InventoryItem`. */
-export interface ChestDto {
-  id: number
-  name: string
-  description: string
-  isClosed: boolean
-}
+/** Исход партии. Сервер отдаёт строку в нижнем регистре, `null` — партия идёт. */
+export type GameResult = 'win' | 'lose'
 
 export interface GameInfo {
   room: Room
@@ -106,6 +109,10 @@ export interface GameInfo {
   coins: number
   keys: number
   inventory: InventoryItem[]
+  /** `false` у оконченной партии — в том числе у старых сохранений. */
+  isGameStarted: boolean
+  /** `null` у идущей партии и у состояний, созданных до 1.2.0. */
+  result: GameResult | null
 }
 
 export interface BattleLog {
@@ -121,15 +128,20 @@ export interface BattleLog {
 
 /**
  * Конец игры — и победа, и поражение одновременно.
- * Машинного признака исхода в теле нет, см. `outcome.ts`.
+ * Исход берём из `gameInfo.result`, а не из тела: отдельного кода в нём нет.
  */
 export interface GameOver {
   message: string
   gameInfo: GameInfo
 }
 
-/** Победа в бою. `gameInfo` в теле НЕТ — нужен повторный `GET /state`. */
+/**
+ * Победа в бою. С 1.2.0 несёт `gameInfo`, поэтому перечитывать `/state` не нужно.
+ * Внимание: из-за этого `BattleWin` подходит под `isGameOver`, если гард не
+ * исключает `battleLog` — он исключает.
+ */
 export interface BattleWin {
   message: string
   battleLog: BattleLog
+  gameInfo: GameInfo
 }

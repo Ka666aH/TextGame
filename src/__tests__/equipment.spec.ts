@@ -16,7 +16,13 @@ const vest = item({ id: 4, name: ITEM_NAMES.leatherVest, damageBlock: 2, durabil
 
 function state(overrides: Partial<GameInfo> = {}): GameInfo {
   return {
-    room: { number: 2, name: 'МАЛЕНЬКАЯ КОМНАТА', description: 'Тесная комната без окон.' },
+    room: {
+      number: 2,
+      name: 'МАЛЕНЬКАЯ КОМНАТА',
+      description: 'Тесная комната без окон.',
+      isSearched: false,
+      kind: 'small',
+    },
     weapon: fists,
     helm: null,
     chestplate: null,
