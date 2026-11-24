@@ -8,7 +8,7 @@ import { isApiError, messageForError, type ApiError } from '../api/errors'
 import type { EquipmentSlot } from '../api/game'
 import { isBattleWin, isGameOver } from '../api/guards'
 import { canEquip, canSell, canUse, hasMap, itemId } from '../api/items'
-import { ROOM_NAMES } from '../api/labels'
+import { ROOM_KINDS } from '../api/labels'
 import { outcomeOf } from '../api/outcome'
 import type { Enemy, InventoryItem } from '../api/types'
 import { priceSuffix } from '../lib/itemText'
@@ -54,8 +54,8 @@ const saveMutation = useCreateSaveMutation()
 
 const mapOpen = ref(false)
 
-// Вид комнаты сервер не передаёт — узнаём по имени (AGENTS.md §10 п.19).
-const isShop = computed(() => info.value?.room.name === ROOM_NAMES.shop)
+// Вид комнаты приходит полем `kind` (с 1.2.0), имя — только для арта.
+const isShop = computed(() => info.value?.room.kind === ROOM_KINDS.shop)
 const mapAvailable = computed(() => hasMap(info.value?.inventory ?? []))
 const enemy = computed<Enemy | null>(() => info.value?.room.enemy ?? null)
 
@@ -103,8 +103,11 @@ const failure = computed<ApiError | null>(() => (isApiError(error.value) ? error
 const sessionGone = computed(() => {
   const cause = failure.value
   if (cause === null) return false
-  // Пустой `403` — policy `RequireSession`: активной игры нет.
-  if (cause.status === 403 && isHttpFallbackCode(cause.code)) return true
+  // `MISSING_SESSION_ID_CLAIM` — policy `RequireSession`: активной игры нет.
+  // С 1.2.0 отказ приходит с телом, пустой `403` остаётся фолбэком.
+  if (cause.status === 403) {
+    if (cause.code === CODE.missingSessionIdClaim || isHttpFallbackCode(cause.code)) return true
+  }
   // `404 SESSION_NOT_FOUND` — сессию удалили, например в другой вкладке.
   return cause.status === 404 && cause.code === CODE.sessionNotFound
 })
@@ -329,7 +332,7 @@ async function handleQuickSave(): Promise<void> {
           v-if="!inBattle"
           :key="info.room.number"
           :room-number="info.room.number"
-          :room-name="info.room.name"
+          :room-kind="info.room.kind"
           :in-shop="isShop"
         />
       </div>

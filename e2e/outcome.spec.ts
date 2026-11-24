@@ -1,10 +1,14 @@
 import { expect, test } from '@playwright/test'
 
 import {
+  battleRoom,
+  battleWin,
   chest,
+  clearedRoom,
   exitRoom,
   gameInfo,
   gameOver,
+  hitLog,
   me,
   mockApi,
   sequence,
@@ -53,4 +57,29 @@ test('комната «ВЫХОД» ведёт на экран победы', as
 
   await expect(page).toHaveURL(/\/game-over$/)
   await expect(page.getByRole('heading', { name: 'Выход найден' })).toBeVisible()
+})
+
+/**
+ * Победа в бою с 1.2.0 несёт `gameInfo`, поэтому `BattleWin` подходит под
+ * `isGameOver`, если гард не исключает `battleLog`. Проверяем оба конца:
+ * экран не ушёл на поражение и состояние из ответа применилось — враг исчез
+ * вместе с панелью боя, а не остался ждать следующего удара.
+ */
+test('победа в бою остаётся в игре, а состояние берётся из ответа', async ({ page }) => {
+  const win = battleWin('КРЫСА ПОВЕРЖЕНА.', hitLog, gameInfo({ room: clearedRoom }))
+
+  await mockApi(page, {
+    'GET /auth/me': me,
+    'GET /state': gameInfo({ room: battleRoom }),
+    'POST /state/rooms/current/enemy/attack': win,
+    // Враг исчез — панель комнаты смонтируется заново и обыщет комнату.
+    'POST /state/rooms/current/items': [],
+  })
+
+  await page.goto('/game')
+  await page.getByRole('button', { name: 'Бить', exact: true }).click()
+
+  await expect(page).toHaveURL(/\/game$/)
+  await expect(page.getByText('КРЫСА ПОВЕРЖЕНА.')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'КРЫСА' })).toHaveCount(0)
 })

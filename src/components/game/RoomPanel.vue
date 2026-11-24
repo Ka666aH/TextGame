@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import { ROOM_NAMES } from '../../api/labels'
+import { ROOM_KINDS } from '../../api/labels'
 import type { Room } from '../../api/types'
 import EntityArt from '../common/EntityArt.vue'
 
 const props = defineProps<{ room: Room }>()
 
-// Вид комнаты сервер не передаёт — узнаём по имени (AGENTS.md §10 п.19).
-const isShop = computed(() => props.room.name === ROOM_NAMES.shop)
-const isExit = computed(() => props.room.name === ROOM_NAMES.exit)
+// Вид комнаты сервер отдаёт полем `kind`; имя нужно только для арта и подписи.
+const isShop = computed(() => props.room.kind === ROOM_KINDS.shop)
+const isExit = computed(() => props.room.kind === ROOM_KINDS.exit)
 </script>
 
 <template>

@@ -1,4 +1,5 @@
-import { ROOM_NAMES } from '../api/labels'
+import { ROOM_KINDS } from '../api/labels'
+import type { RoomKind } from '../api/types'
 
 /**
  * Есть ли в комнате что искать.
@@ -7,7 +8,10 @@ import { ROOM_NAMES } from '../api/labels'
  * только малым, большим комнатам и магазину (`RoomContentGenerator`).
  * Врага в пустой комнате встретить можно, предметов — нет, поэтому обыск там
  * бессмысленен и кнопку мы не показываем.
+ *
+ * С 1.2.0 вид комнаты приходит полем `kind`, а не выводится из названия.
+ * `unknown` считаем обыскиваемой: лишний POST безвреден, а спрятать лут хуже.
  */
-export function canSearchRoom(roomName: string): boolean {
-  return roomName !== ROOM_NAMES.start && roomName !== ROOM_NAMES.empty
+export function canSearchRoom(kind: RoomKind): boolean {
+  return kind !== ROOM_KINDS.start && kind !== ROOM_KINDS.empty
 }

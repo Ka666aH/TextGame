@@ -106,8 +106,10 @@ async function travel(room: MapRoom): Promise<void> {
   // можно, поэтому недоступны только сами переходы.
   if (room.number === props.currentNumber || props.inBattle) return
 
-  // Неоткрытая комната вернёт `403 UNDISCOVERED_ROOM_ERROR`: карта показывает
-  // и такие, но пометить их нечем — сервер флага не передаёт.
+  // Неоткрытая комната вернёт `403 UNDISCOVERED_ROOM_ERROR`; с 1.2.0 карта
+  // отдаёт `isDiscovered`, поэтому такие комнаты просто не нажимаются.
+  if (!room.isDiscovered) return
+
   const result = await runGameAction(
     () => goToRoomMutation.mutateAsync(room.number),
     'Не удалось перейти в комнату.',
@@ -152,17 +154,24 @@ async function travel(room: MapRoom): Promise<void> {
           <button
             type="button"
             class="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-sm hover:bg-active disabled:opacity-60"
-            :disabled="busy || inBattle || room.number === currentNumber"
+            :disabled="busy || inBattle || room.number === currentNumber || !room.isDiscovered"
             @click="travel(room)"
           >
             <span class="w-8 shrink-0 font-mono text-xs text-muted-dim">{{ room.number }}</span>
             <span
               class="flex-1 truncate"
-              :class="room.number === currentNumber ? 'text-ok-ink' : 'text-ink-soft'"
+              :class="
+                room.number === currentNumber
+                  ? 'text-ok-ink'
+                  : room.isDiscovered
+                    ? 'text-ink-soft'
+                    : 'text-muted-dim'
+              "
             >
               {{ room.name }}
             </span>
             <span v-if="room.number === currentNumber" class="text-xs text-ok-ink"> здесь </span>
+            <span v-else-if="!room.isDiscovered" class="text-xs text-muted-dim"> не открыта </span>
           </button>
         </li>
       </ul>
@@ -172,8 +181,8 @@ async function travel(room: MapRoom): Promise<void> {
       </p>
 
       <p class="mt-3 text-xs text-muted-dim">
-        Не все комнаты на карте уже исхожены: в незнакомую войти не выйдет. Стартовый зал тоже
-        закрыт — вернуться в него нельзя.
+        Неоткрытые комнаты отмечены — войти в них нельзя, пока не дойдёшь до них своим ходом.
+        Пройденные открыты, включая стартовый зал: вернуться в него можно.
       </p>
     </div>
   </div>

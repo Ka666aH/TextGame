@@ -54,8 +54,14 @@ const hasLoot = computed(() => loot.value !== undefined)
 const alreadyOpen = computed(() => props.chest.isClosed === false)
 const deadMimic = computed(() => isDeadMimic(props.chest))
 
-/** Запертость в DTO не передаётся: узнаём из `403 LOCKED` на попытке открыть. */
-const locked = ref(false)
+/**
+ * Запертость отдаёт сервер (`isLocked`, с 1.2.0), поэтому «Отпереть ключом»
+ * видна сразу, без пробной попытки открыть. Локальный флаг — страховка на
+ * случай устаревшего списка: если `open` всё же ответил `403 LOCKED`,
+ * предложение отпереть появится.
+ */
+const lockedStale = ref(false)
+const locked = computed(() => props.chest.isLocked === true || lockedStale.value)
 
 async function openChest(): Promise<void> {
   const id = chestId.value
@@ -71,10 +77,10 @@ async function openChest(): Promise<void> {
       await router.push({ name: 'gameOver' })
       return
     }
-    locked.value = false
+    lockedStale.value = false
   } catch (error) {
     if (isApiError(error) && error.code === CODE.locked) {
-      locked.value = true
+      lockedStale.value = true
       return
     }
     reportGameError(error, 'Не удалось открыть сундук.')
@@ -83,7 +89,10 @@ async function openChest(): Promise<void> {
   }
 }
 
-/** Отпирание тратит ключ, поэтому сразу открываем: второй раз он не нужен. */
+/**
+ * Отпереть и сразу открыть. С 1.2.0 `unlock` идемпотентен — ключ тратится
+ * только с запертого сундука, — но держать игрока в два клика всё равно незачем.
+ */
 async function unlock(): Promise<void> {
   const id = chestId.value
   if (id === null) return
@@ -94,7 +103,7 @@ async function unlock(): Promise<void> {
   )
   if (!result.ok) return
 
-  locked.value = false
+  lockedStale.value = false
   await openChest()
 }
 

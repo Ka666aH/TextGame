@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { computed, onMounted, watch } from 'vue'
 
 import { isChestItem, itemId, roomItemAction } from '../../api/items'
-import type { InventoryItem } from '../../api/types'
+import type { InventoryItem, RoomKind } from '../../api/types'
 import { reportGameError, runGameAction, useGameBusy } from '../../composables/game'
 import { priceSuffix } from '../../lib/itemText'
 import { canSearchRoom } from '../../lib/rooms'
@@ -16,7 +16,7 @@ import {
 import ChestCard from './ChestCard.vue'
 import ItemCard from './ItemCard.vue'
 
-const props = defineProps<{ roomNumber: number; roomName: string; inShop: boolean }>()
+const props = defineProps<{ roomNumber: number; roomKind: RoomKind; inShop: boolean }>()
 
 const { busy } = useGameBusy()
 
@@ -33,7 +33,7 @@ const searched = computed(() => roomItems.data.value !== undefined)
 const failed = computed(() => roomItems.error.value !== null)
 
 // Стартовая и пустая комнаты заведомо без предметов: блока в них нет вовсе.
-const searchable = computed(() => canSearchRoom(props.roomName))
+const searchable = computed(() => canSearchRoom(props.roomKind))
 
 async function search(): Promise<void> {
   if (busy.value) return

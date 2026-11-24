@@ -21,7 +21,8 @@ import {
   useItem,
 } from '../api/game'
 import { isBattleLogArray, isBattleWin, isGameOver } from '../api/guards'
-import type { GameInfo, GameOver } from '../api/types'
+import { itemId } from '../api/items'
+import type { BattleWin, GameInfo, GameOver, InventoryItem } from '../api/types'
 import { isPlainChestHit } from '../lib/chests'
 import { brokenEquipment } from '../lib/equipment'
 import { appendBattleLog } from '../composables/game'
@@ -191,8 +192,10 @@ export function useGoToRoomMutation() {
 }
 
 /**
- * Перечитывает состояние после боя и объявляет сломанную экипировку.
+ * Перечитывает состояние, когда в ответе его нет.
  *
+ * Так приходит продолжение боя (`BattleLog[]`) и удар по обычному сундуку:
+ * прочность могла сломаться, хиты измениться, а `GameInfo` в ответе не будет.
  * Сломанную вещь сервер выбрасывает молча: оружие заменяется кулаками, шлем и
  * нагрудник обнуляются. Уведомления об этом в ответе нет, поэтому единственный
  * признак — разница снимков до и после удара. Сравнение живёт здесь, а не на
@@ -207,13 +210,29 @@ async function refetchAfterCombat(): Promise<void> {
   const after = queryClient.getQueryData<GameInfo>(queryKeys.state)
   if (after === undefined) return
 
+  announceBroken(before, after)
+}
+
+function announceBroken(before: GameInfo, after: GameInfo): void {
   const broken = brokenEquipment(before, after)
   if (broken.length === 0) return
 
   useUiStore().notify(`Сломалось: ${broken.join(', ')}`)
 }
 
-/** Удар по врагу: три формы ответа, состояние перечитываем всегда. */
+/**
+ * Победа в бою с 1.2.0 приносит свежее состояние, поэтому перечитывать
+ * `/state` не нужно: снимок из кэша сравниваем с тем, что пришёл в ответе.
+ */
+function applyBattleWin(battleWin: BattleWin): void {
+  const before = queryClient.getQueryData<GameInfo>(queryKeys.state)
+  queryClient.setQueryData(queryKeys.state, battleWin.gameInfo)
+  if (before === undefined) return
+
+  announceBroken(before, battleWin.gameInfo)
+}
+
+/** Удар по врагу: три формы ответа. */
 export function useAttackMutation() {
   return useMutation({
     mutationFn: attackEnemy,
@@ -224,17 +243,18 @@ export function useAttackMutation() {
         return
       }
 
+      // Продолжение боя: состояния в ответе нет, прочность могла сломаться.
       if (isBattleLogArray(result)) {
         appendBattleLog(result)
-      } else if (isBattleWin(result)) {
-        appendBattleLog([result.battleLog])
+        await refetchAfterCombat()
+        return
       }
 
-      // В ответе нет состояния вообще: прочность могла сломаться, а `BattleWin`
-      // не содержит `gameInfo` — перечитывание обязательно.
-      await refetchAfterCombat()
+      // Победа: журнал и готовое состояние из ответа.
+      appendBattleLog([result.battleLog])
+      applyBattleWin(result)
 
-      if (isBattleWin(result) && mimicBattle) {
+      if (mimicBattle) {
         mimicBattle = false
         await refreshCurrentRoomItems()
       }
@@ -295,11 +315,24 @@ export function useOpenChestMutation() {
   })
 }
 
-/** Отпирание всегда тратит ключ, поэтому счётчик ключей надо перечитать. */
+/**
+ * Отпирание. С 1.2.0 ключ тратится только с запертого сундука, а в ответе
+ * приходит сам сундук — им и обновляем список комнаты, иначе кнопка осталась
+ * бы прежней. Состояние перечитываем ради счётчика ключей.
+ */
 export function useUnlockChestMutation() {
   return useMutation({
     mutationFn: unlockChest,
-    onSuccess: async () => {
+    onSuccess: async (chest) => {
+      const roomNumber = currentRoomNumber()
+      const chestId = itemId(chest)
+
+      if (roomNumber !== null && chestId !== null) {
+        queryClient.setQueryData<InventoryItem[]>(queryKeys.roomItems(roomNumber), (items) =>
+          items?.map((item) => (itemId(item) === chestId ? chest : item)),
+        )
+      }
+
       await queryClient.invalidateQueries({ queryKey: queryKeys.state })
     },
   })
@@ -308,6 +341,9 @@ export function useUnlockChestMutation() {
 /**
  * Удар по сундуку. Обычный сундук остаётся в комнате, мимик уходит в бой,
  * а если он погиб от первого удара — возвращается в комнату мёртвым.
+ *
+ * С 1.2.0 удар по обычному сундуку проверяет смерть: кулаки бьют и самого
+ * игрока, поэтому `200 GameOver` от `hit` — не аномалия.
  */
 export function useHitChestMutation() {
   return useMutation({
@@ -319,22 +355,22 @@ export function useHitChestMutation() {
         return
       }
 
-      const log = isBattleWin(result) ? result.battleLog : result
-      appendBattleLog([log])
-
-      // Состояния в ответе нет: хиты и прочность оружия могли измениться.
-      await refetchAfterCombat()
-
+      // Мимик умер от первого удара: журнал и состояние пришли в ответе.
       if (isBattleWin(result)) {
-        // Мимик умер сразу: сундук уже вернулся в комнату мёртвым и открытым.
+        appendBattleLog([result.battleLog])
+        applyBattleWin(result)
         await refreshCurrentRoomItems()
         return
       }
 
+      // Обычный сундук или живой мимик: в ответе только сам удар.
+      appendBattleLog([result])
+      await refetchAfterCombat()
+
       // Обычный сундук никуда не делся, а вот мимик ушёл в бой. Список комнаты
       // сейчас не перечитать: обыск запрещён, пока бой идёт. Запоминаем, чтобы
       // обновить его после победы.
-      if (!isPlainChestHit(log)) mimicBattle = true
+      if (!isPlainChestHit(result)) mimicBattle = true
     },
   })
 }

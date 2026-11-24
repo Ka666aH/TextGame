@@ -51,7 +51,7 @@ export async function mockApi(page: Page, table: Record<string, MockValue>): Pro
 
 /**
  * Диагностика на случай падения: без неё отказ выглядит как пустая страница,
- * и причину приходится угадывать. Playwright показывает stdout у упавших
+ * и причину приходится угадывать. Playwright показывает stdout упавших
  * тестов, так что в зелёном прогоне этих строк не видно.
  */
 function logPageProblems(page: Page): void {
@@ -125,12 +125,44 @@ export const smallRoom = {
   number: 2,
   name: 'МАЛЕНЬКАЯ КОМНАТА',
   description: 'Тесная комната без окон.',
+  isSearched: false,
+  kind: 'small',
 }
 
 export const exitRoom = {
   number: 9,
   name: 'ВЫХОД',
   description: 'Свет в конце коридора.',
+  isSearched: false,
+  kind: 'exit',
+}
+
+const rat = {
+  id: 7,
+  name: 'КРЫСА',
+  description: 'Крупная крыса с жёлтыми зубами.',
+  health: 10,
+  damage: 2,
+  damageBlock: 0,
+}
+
+/** Комната с врагом: на экране это бой. */
+export const battleRoom = {
+  number: 4,
+  name: 'БОЛЬШАЯ КОМНАТА',
+  description: 'Просторный зал с колоннами.',
+  isSearched: true,
+  kind: 'big',
+  enemy: rat,
+}
+
+/** Та же комната после победы: врага в ней уже нет. */
+export const clearedRoom = {
+  number: 4,
+  name: 'БОЛЬШАЯ КОМНАТА',
+  description: 'Просторный зал с колоннами.',
+  isSearched: true,
+  kind: 'big',
 }
 
 export const bandage = {
@@ -147,9 +179,23 @@ export const chest = {
   name: 'СУНДУК',
   description: 'Дубовый сундук с железными полосами.',
   isClosed: true,
+  cost: null,
+  isLocked: false,
 }
 
-/** Снимок состояния: поля ровно те, что отдаёт `GET /state`. */
+/** Удар по врагу: `BattleLog` с заполненным здоровьем цели. */
+export const hitLog = {
+  target: 'КРЫСА',
+  damageToTarget: 10,
+  targetHealthBeforeAttack: 10,
+  targetHealthAfterAttack: 0,
+  attacker: 'ИГРОК',
+  damageToAttacker: 0,
+  healthBeforeAttack: 80,
+  healthAfterAttack: 80,
+}
+
+/** Снимок состояния: поля ровно те, что отдаёт `GET /state` (1.2.0). */
 export function gameInfo(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     room: smallRoom,
@@ -161,6 +207,8 @@ export function gameInfo(overrides: Record<string, unknown> = {}): Record<string
     coins: 12,
     keys: 1,
     inventory: [],
+    isGameStarted: true,
+    result: null,
     ...overrides,
   }
 }
@@ -168,4 +216,13 @@ export function gameInfo(overrides: Record<string, unknown> = {}): Record<string
 /** `200 GameOver` — и победа, и поражение приходят одной формой. */
 export function gameOver(message: string, room: Record<string, unknown>): Record<string, unknown> {
   return { message, gameInfo: gameInfo({ room }) }
+}
+
+/** `200 BattleWin`: с 1.2.0 несёт `gameInfo`, поэтому перечитывать `/state` не нужно. */
+export function battleWin(
+  message: string,
+  battleLog: Record<string, unknown>,
+  info: Record<string, unknown>,
+): Record<string, unknown> {
+  return { message, battleLog, gameInfo: info }
 }

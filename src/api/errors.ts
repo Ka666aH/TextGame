@@ -106,7 +106,12 @@ export function messageForError(error: ApiError): string {
   if (error.code === CODE.userNotFound && error.status === 404) {
     return 'Нет такого логина.'
   }
-  if (error.status === 403 && isHttpFallbackCode(error.code)) {
+  // С 1.2.0 policy отдаёт код `MISSING_SESSION_ID_CLAIM`; пустое тело остаётся
+  // фолбэком для старых ответов и чужих прокси.
+  if (
+    error.status === 403 &&
+    (error.code === CODE.missingSessionIdClaim || isHttpFallbackCode(error.code))
+  ) {
     return 'Нет активной игры. Выбери сессию.'
   }
   if (error.status === 401) {
