@@ -28,9 +28,7 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
  * на экран исхода.
  */
 export function isGameOver(value: unknown): value is GameOver {
-  return (
-    isRecord(value) && 'gameInfo' in value && 'message' in value && !('battleLog' in value)
-  )
+  return isRecord(value) && 'gameInfo' in value && 'message' in value && !('battleLog' in value)
 }
 
 /** Победа в бою: `message`, один `battleLog` и (с 1.2.0) свежее состояние. */

@@ -129,16 +129,23 @@ export interface BattleLog {
 /**
  * Конец игры — и победа, и поражение одновременно.
  * Исход берём из `gameInfo.result`, а не из тела: отдельного кода в нём нет.
+ *
+ * `battleLog?: never` — не данные, а страховка для типов: без него `BattleWin`
+ * структурно подходит под `GameOver` (у него есть и `message`, и `gameInfo`),
+ * и исключение «не конец игры» в гардах вырождается в `never`.
  */
 export interface GameOver {
   message: string
   gameInfo: GameInfo
+  battleLog?: never
 }
 
 /**
  * Победа в бою. С 1.2.0 несёт `gameInfo`, поэтому перечитывать `/state` не нужно.
- * Внимание: из-за этого `BattleWin` подходит под `isGameOver`, если гард не
- * исключает `battleLog` — он исключает.
+ *
+ * По полям это почти `GameOver` (те же `message` и `gameInfo`), поэтому
+ * различает их только `battleLog`: у `GameOver` он запрещён типом, а гард
+ * `isGameOver` проверяет его отсутствие.
  */
 export interface BattleWin {
   message: string

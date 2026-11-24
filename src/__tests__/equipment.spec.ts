@@ -31,6 +31,8 @@ function state(overrides: Partial<GameInfo> = {}): GameInfo {
     coins: 10,
     keys: 1,
     inventory: [],
+    isGameStarted: true,
+    result: null,
     ...overrides,
   }
 }
