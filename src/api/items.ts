@@ -88,7 +88,7 @@ export function canUse(item: InventoryItem): boolean {
   return structuralKind(item) === 'heal' || item.name === ITEM_NAMES.unknownPotion
 }
 
-/** Можно ли позвать `equip`. Кулаки надеть нельзя — они уже надеты. */
+/** Можно ли позвать `equip`. Кулаки экипировать нельзя — они уже надеты. */
 export function canEquip(item: InventoryItem): boolean {
   const kind = structuralKind(item)
   return kind === 'weapon' || kind === 'wand' || kind === 'armor'

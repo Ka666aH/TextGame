@@ -365,7 +365,7 @@ async function handleQuickSave(): Promise<void> {
               :disabled="busy"
               @click="handleEquip(item)"
             >
-              Надеть
+              Экипировать
             </button>
           </template>
 

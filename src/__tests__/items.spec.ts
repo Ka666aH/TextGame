@@ -259,7 +259,7 @@ describe('действия с предметами', () => {
     expect(canUse(entry(ITEM_NAMES.coins))).toBe(false)
   })
 
-  it('разрешает надеть оружие и броню, но не кулаки', () => {
+  it('разрешает экипировать оружие и броню, но не кулаки', () => {
     expect(canEquip(entry(ITEM_NAMES.ironSword))).toBe(true)
     expect(canEquip(entry(ITEM_NAMES.magicWand))).toBe(true)
     expect(canEquip(entry(ITEM_NAMES.ironHelm))).toBe(true)
