@@ -166,8 +166,8 @@ async function handleDelete(session: Session): Promise<void> {
         :key="session.id"
         class="flex flex-wrap items-center gap-3 rounded border border-line bg-panel/60 px-4 py-3"
       >
-        <div class="min-w-0 flex-1">
-          <p class="truncate text-sm text-ink">{{ session.name || 'Без названия' }}</p>
+        <div class="min-w-0 grow basis-40">
+          <p class="text-sm break-words text-ink">{{ session.name || 'Без названия' }}</p>
           <p class="text-xs text-muted-dim">
             создана {{ formatDateTime(session.createdAt) }} ·
             <span class="font-mono">сид {{ session.seed }}</span>
@@ -181,23 +181,26 @@ async function handleDelete(session: Session): Promise<void> {
           активная
         </span>
 
-        <button
-          type="button"
-          class="rounded border border-line-strong px-3 py-1 text-sm text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-50"
-          :disabled="busyId === session.id"
-          @click="handleSelect(session)"
-        >
-          Играть
-        </button>
+        <!-- Действия: на телефоне отдельной строкой на всю ширину, на десктопе — справа. -->
+        <div class="flex w-full shrink-0 gap-2 sm:ml-auto sm:w-auto">
+          <button
+            type="button"
+            class="flex-1 rounded border border-line-strong px-3 py-1 text-sm text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-50 sm:flex-none"
+            :disabled="busyId === session.id"
+            @click="handleSelect(session)"
+          >
+            Играть
+          </button>
 
-        <button
-          type="button"
-          class="rounded border border-danger-line px-3 py-1 text-sm text-danger-ink hover:bg-danger-soft-strong disabled:opacity-50"
-          :disabled="busyId === session.id"
-          @click="handleDelete(session)"
-        >
-          Удалить
-        </button>
+          <button
+            type="button"
+            class="flex-1 rounded border border-danger-line px-3 py-1 text-sm text-danger-ink hover:bg-danger-soft-strong disabled:opacity-50 sm:flex-none"
+            :disabled="busyId === session.id"
+            @click="handleDelete(session)"
+          >
+            Удалить
+          </button>
+        </div>
       </li>
     </ul>
   </section>

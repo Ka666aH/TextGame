@@ -145,30 +145,33 @@ async function handleDelete(save: Save): Promise<void> {
         :key="save.id"
         class="flex flex-wrap items-center gap-3 rounded border border-line bg-panel/60 px-4 py-3"
       >
-        <div class="min-w-0 flex-1">
-          <p class="truncate text-sm text-ink">{{ save.name || 'Без названия' }}</p>
+        <div class="min-w-0 grow basis-40">
+          <p class="text-sm break-words text-ink">{{ save.name || 'Без названия' }}</p>
           <p class="text-xs text-muted-dim">
             комната {{ save.room }} · {{ formatDateTime(save.createdAt) }}
           </p>
         </div>
 
-        <button
-          type="button"
-          class="rounded border border-line-strong px-3 py-1 text-sm text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-50"
-          :disabled="busyId === save.id"
-          @click="handleLoad(save)"
-        >
-          Загрузить
-        </button>
+        <!-- Действия: на телефоне отдельной строкой на всю ширину, на десктопе — справа. -->
+        <div class="flex w-full shrink-0 gap-2 sm:ml-auto sm:w-auto">
+          <button
+            type="button"
+            class="flex-1 rounded border border-line-strong px-3 py-1 text-sm text-ink-soft hover:border-line-hover hover:text-strong disabled:opacity-50 sm:flex-none"
+            :disabled="busyId === save.id"
+            @click="handleLoad(save)"
+          >
+            Загрузить
+          </button>
 
-        <button
-          type="button"
-          class="rounded border border-danger-line px-3 py-1 text-sm text-danger-ink hover:bg-danger-soft-strong disabled:opacity-50"
-          :disabled="busyId === save.id"
-          @click="handleDelete(save)"
-        >
-          Удалить
-        </button>
+          <button
+            type="button"
+            class="flex-1 rounded border border-danger-line px-3 py-1 text-sm text-danger-ink hover:bg-danger-soft-strong disabled:opacity-50 sm:flex-none"
+            :disabled="busyId === save.id"
+            @click="handleDelete(save)"
+          >
+            Удалить
+          </button>
+        </div>
       </li>
     </ul>
   </section>
