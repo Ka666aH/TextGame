@@ -1,5 +1,10 @@
 # TextGame: статика SPA и прокси /api на бэкенд.
 # Подставь домен, путь до собранного dist и адрес API.
+#
+# Это шаблон: официальный образ nginx при старте контейнера прогоняет файлы из
+# /etc/nginx/templates через envsubst и кладёт результат в conf.d/. Подставляются
+# только переменные, реально заданные в окружении контейнера, поэтому nginx-ные
+# $uri, $host и $proxy_add_x_forwarded_for остаются нетронутыми.
 
 server {
     listen 80;
@@ -42,11 +47,11 @@ server {
         # выставляется по схеме. Без этих заголовков за прокси игроков
         # разлогинивает, а куки могут уйти без Secure.
         # На стороне API IP этого nginx должен быть в ForwardedHeaders:KnownNetworks.
-        # Схему НЕ берём из $scheme: когда TLS терминирует внешний прокси, здесь
-        # всегда http, и заголовок перетёр бы https от него. Передаём то, что
-        # пришло, а пустой заголовок nginx просто не отправляет.
+        # Схему задаёт TEXTGAME_FORWARDED_PROTO из .env, а не $scheme: внутри
+        # контейнера всегда http, и $scheme перетёр бы https внешнего прокси.
+        # Пустое значение = заголовок не отправляется, схему решает API.
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_set_header X-Forwarded-Proto ${TEXTGAME_FORWARDED_PROTO};
 
         proxy_read_timeout 60s;
     }

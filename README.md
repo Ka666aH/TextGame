@@ -116,6 +116,7 @@ docker compose up
 | `WEB_PORT`                                            | `8080`                                       | Порт сайта на хосте                                                        |
 | `TEXTGAME_API_IMAGE`                                  | `ka666ah/text-game-api:1.2.0`                | Пин образа API — единственное место, где задана версия                     |
 | `TEXTGAME_SUBNET`                                     | `10.10.0.0/16`                               | Подсеть compose-сети, которой API доверяет как источнику `X-Forwarded-For` |
+| `TEXTGAME_FORWARDED_PROTO`                            | `https`                                      | Схема, которую nginx сообщает API в `X-Forwarded-Proto`; `http` — для локальной отладки |
 | `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | `text_game_db` / `dev_user` / `dev_password` | База                                                                       |
 | `JWT_SECRET`                                          | заглушка                                     | Секрет подписи JWT, минимум 32 символа                                     |
 
@@ -154,7 +155,7 @@ pnpm dev        # http://localhost:5173
 ```
 src/          код приложения (см. «Архитектура»)
 e2e/          UI-сценарии Playwright, заглушки сети и smoke-спек против живого API
-deploy/       серверный блок nginx для выкладки
+deploy/       шаблон nginx для выкладки: статика, прокси `/api`, схема из `.env`
 docs/         скриншоты
 Dockerfile    сборка статики и раздача тем же nginx-конфигом
 ```
